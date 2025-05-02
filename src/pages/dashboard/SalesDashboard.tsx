@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useSalesDashboard } from "../../hooks/useSalesDashboard";
 import { SalesTargetChart } from "../../components/dashboard/SalesTargetChart";
 import { GrowthTrendChart } from "../../components/dashboard/GrowthTrendChart";
@@ -6,18 +6,23 @@ import { DistributorPerformancePanel } from "../../components/dashboard/Distribu
 import { LowStockAlertsPanel } from "../../components/dashboard/LowStockAlertsPanel";
 import { ReturnRequestsPanel } from "../../components/dashboard/ReturnRequestsPanel";
 import { RecentOrdersTable } from "../../components/dashboard/RecentOrdersTable";
+import { FormGrid } from "../../components/formCommon/FormGrid";
+import { FormLoading } from "../../components/formCommon/FormLoading";
 import {
   Box,
   Typography,
-  Grid,
-  CircularProgress,
   Container,
   Stack
 } from "@mui/material";
 
-export const SalesDashboard = () => {
-  const [selectedDistributorId, setSelectedDistributorId] =
-    useState<string>("");
+const DashboardSection = memo(({ children }: { children: React.ReactNode }) => (
+  <Box sx={{ mb: 4 }}>
+    {children}
+  </Box>
+));
+
+export const SalesDashboard = memo(() => {
+  const [selectedDistributorId, setSelectedDistributorId] = useState<string>("");
   const {
     loading,
     salesTargets,
@@ -29,18 +34,7 @@ export const SalesDashboard = () => {
   } = useSalesDashboard(selectedDistributorId);
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <FormLoading fullScreen />;
   }
 
   return (
@@ -51,27 +45,36 @@ export const SalesDashboard = () => {
         </Typography>
 
         <Stack spacing={4}>
-          <SalesTargetChart salesTargets={salesTargets} />
-          <GrowthTrendChart growthTrends={growthTrends} />
+          <DashboardSection>
+            <SalesTargetChart salesTargets={salesTargets} />
+          </DashboardSection>
 
-          <DistributorPerformancePanel
-            distributorPerformance={distributorPerformance}
-            selectedDistributorId={selectedDistributorId}
-            onDistributorChange={setSelectedDistributorId}
-          />
+          <DashboardSection>
+            <GrowthTrendChart growthTrends={growthTrends} />
+          </DashboardSection>
 
-          <Grid container spacing={3}>
-            <Grid item xs={12} lg={6}>
+          <DashboardSection>
+            <DistributorPerformancePanel
+              distributorPerformance={distributorPerformance}
+              selectedDistributorId={selectedDistributorId}
+              onDistributorChange={setSelectedDistributorId}
+            />
+          </DashboardSection>
+
+          <FormGrid container spacing={3}>
+            <FormGrid xs={12} lg={6}>
               <LowStockAlertsPanel lowStockAlerts={lowStockAlerts} />
-            </Grid>
-            <Grid item xs={12} lg={6}>
+            </FormGrid>
+            <FormGrid xs={12} lg={6}>
               <ReturnRequestsPanel returnRequests={returnRequests} />
-            </Grid>
-          </Grid>
+            </FormGrid>
+          </FormGrid>
 
-          <RecentOrdersTable recentOrders={recentOrders} />
+          <DashboardSection>
+            <RecentOrdersTable recentOrders={recentOrders} />
+          </DashboardSection>
         </Stack>
       </Box>
     </Container>
   );
-};
+});

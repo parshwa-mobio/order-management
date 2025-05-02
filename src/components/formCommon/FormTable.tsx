@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 
 interface Column<T = any> {
-  field: keyof T;
+  field: keyof T | string;
   headerName: string;
   width?: number;
   renderCell?: (row: T) => React.ReactNode;
@@ -96,11 +96,17 @@ const TableBodyContent = memo(({
             hover
             sx={{ '&:hover': { bgcolor: 'action.hover' } }}
           >
-            {columns.map((column) => (
-              <TableCell key={`${rowId}-${column.field as string}`}>
-                {column.renderCell ? column.renderCell(row) : row?.[column.field]}
-              </TableCell>
-            ))}
+            {columns.map((column) => {
+              const value = typeof column.field === 'string' && column.field.includes('.') 
+                ? column.field.split('.').reduce((obj: any, key: string) => obj?.[key], row)
+                : row?.[column.field];
+              
+              return (
+                <TableCell key={`${rowId}-${String(column.field)}`}>
+                  {column.renderCell ? column.renderCell(row) : value}
+                </TableCell>
+              );
+            })}
           </TableRow>
         );
       })}
