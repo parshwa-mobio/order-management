@@ -6,7 +6,7 @@ import { FormTypography } from "../../components/formCommon/FormTypography";
 import { FormTextField } from "../../components/formCommon/FormTextField";
 import { FormSelect } from "../../components/formCommon/FormSelect";
 import { FormButton } from "../../components/formCommon/FormButton";
-import { PaperBox } from "../../components/formCommon/PaperBox";
+import { PaperBox } from "../../components/common/PaperBox";
 import { FormBox } from "../../components/formCommon/FormBox";
 import { FormGrid } from "../../components/formCommon/FormGrid";
 
@@ -24,23 +24,33 @@ interface FormData {
   container40ftCapacity: number | undefined;
 }
 
+const INITIAL_FORM_DATA: FormData = {
+  sku: "",
+  name: "",
+  category: "",
+  price: 0,
+  moq: 1,
+  stock: 0,
+  netWeight: 0,
+  grossWeight: 0,
+  volume: 0,
+  container20ftCapacity: undefined,
+  container40ftCapacity: undefined,
+};
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "Select Category" },
+  { value: "distributor", label: "Distributor" },
+  { value: "dealer", label: "Dealer" },
+  { value: "sales", label: "Sales" },
+  { value: "exportTeam", label: "Export Team" },
+] as const;
+
 const ProductEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { products, updateProduct } = useProducts();
-  const [formData, setFormData] = useState<FormData>({
-    sku: "",
-    name: "",
-    category: "",
-    price: 0,
-    moq: 1,
-    stock: 0,
-    netWeight: 0,
-    grossWeight: 0,
-    volume: 0,
-    container20ftCapacity: undefined,
-    container40ftCapacity: undefined,
-  });
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
 
   useEffect(() => {
     const product = products.find((p) => p.id === id);
@@ -65,179 +75,152 @@ const ProductEdit = () => {
     e.preventDefault();
     try {
       await updateProduct(id!, formData);
-      navigate("/products"); // Changed from '/admin/products' to '/products'
+      navigate("/products");
     } catch (error) {
       console.error("Failed to update product:", error);
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
+      | SelectChangeEvent<string>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name.includes("price") ||
-        name.includes("Weight") ||
-        name.includes("volume") ||
-        name.includes("Capacity")
-          ? value === ""
-            ? undefined
-            : parseFloat(value)
-          : name === "moq" || name === "stock"
-            ? parseInt(value, 10)
-            : value,
+      [name]: parseFieldValue(name, value),
     }));
   };
 
-  const categoryOptions = [
-    { value: "", label: "Select Category" },
-    { value: "distributor", label: "Distributor" },
-    { value: "dealer", label: "Dealer" },
-    { value: "sales", label: "Sales" },
-    { value: "exportTeam", label: "Export Team" },
-  ];
+  const parseFieldValue = (name: string, value: string) => {
+    if (value === "") {
+      return name.includes("Capacity") ? undefined : value;
+    }
+
+    if (
+      name.includes("price") ||
+      name.includes("Weight") ||
+      name.includes("volume") ||
+      name.includes("Capacity")
+    ) {
+      return parseFloat(value);
+    }
+
+    if (name === "moq" || name === "stock") {
+      return parseInt(value, 10);
+    }
+
+    return value;
+  };
+
+  const renderTextField = (props: any) => (
+    <FormGrid xs={12} md={6}>
+      <FormTextField
+        {...props}
+        onChange={handleChange}
+        value={formData[props.name as keyof FormData]}
+      />
+    </FormGrid>
+  );
 
   return (
     <Container maxWidth="lg">
       <FormBox p={3}>
-        <FormTypography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
+        <FormTypography
+          variant="h4"
+          component="h1"
+          gutterBottom
           color="primary.main"
-          sx={{ fontWeight: 'bold', mb: 4 }}
+          sx={{ fontWeight: "bold", mb: 4 }}
         >
           Edit Product
         </FormTypography>
         <PaperBox>
           <FormBox component="form" onSubmit={handleSubmit} p={3}>
-            <FormBox component="div" sx={{ display: 'grid', gap: 3 }}>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  label="SKU"
-                  name="sku"
-                  value={formData.sku}
-                  onChange={handleChange}
-                  required
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  label="Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </FormGrid>
+            <FormBox component="div" sx={{ display: "grid", gap: 3 }}>
+              {renderTextField({ label: "SKU", name: "sku", required: true })}
+              {renderTextField({ label: "Name", name: "name", required: true })}
+
               <FormGrid xs={12} md={6}>
                 <FormSelect
+                  id="category-select"
                   name="category"
                   label="Category"
                   value={formData.category}
                   onChange={handleChange}
-                  options={categoryOptions}
+                  options={CATEGORY_OPTIONS}
                   required
                 />
               </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="Price"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="0.01"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="MOQ"
-                  name="moq"
-                  value={formData.moq}
-                  onChange={handleChange}
-                  required
-                  min="1"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="Stock"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="Net Weight"
-                  name="netWeight"
-                  value={formData.netWeight}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="0.01"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="Gross Weight"
-                  name="grossWeight"
-                  value={formData.grossWeight}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="0.01"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="Volume"
-                  name="volume"
-                  value={formData.volume}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="20ft Container Capacity"
-                  name="container20ftCapacity"
-                  value={formData.container20ftCapacity || ""}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                />
-              </FormGrid>
-              <FormGrid xs={12} md={6}>
-                <FormTextField
-                  type="number"
-                  label="40ft Container Capacity"
-                  name="container40ftCapacity"
-                  value={formData.container40ftCapacity || ""}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                />
-              </FormGrid>
+
+              {renderTextField({
+                type: "number",
+                label: "Price",
+                name: "price",
+                required: true,
+                min: "0",
+                step: "0.01",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "MOQ",
+                name: "moq",
+                required: true,
+                min: "1",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "Stock",
+                name: "stock",
+                required: true,
+                min: "0",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "Net Weight",
+                name: "netWeight",
+                required: true,
+                min: "0",
+                step: "0.01",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "Gross Weight",
+                name: "grossWeight",
+                required: true,
+                min: "0",
+                step: "0.01",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "Volume",
+                name: "volume",
+                required: true,
+                min: "0",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "20ft Container Capacity",
+                name: "container20ftCapacity",
+                required: true,
+                min: "0",
+                value: formData.container20ftCapacity ?? "",
+              })}
+              {renderTextField({
+                type: "number",
+                label: "40ft Container Capacity",
+                name: "container40ftCapacity",
+                required: true,
+                min: "0",
+                value: formData.container40ftCapacity ?? "",
+              })}
             </FormBox>
+
             <FormBox mt={3} display="flex" justifyContent="flex-end">
-              <FormButton type="submit">
-                Save Changes
-              </FormButton>
+              <FormButton type="submit">Save Changes</FormButton>
             </FormBox>
           </FormBox>
         </PaperBox>

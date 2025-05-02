@@ -8,7 +8,7 @@ import { FormGrid } from "../formCommon/FormGrid";
 import { FormBox } from "../formCommon/FormBox";
 import { FormSelect } from "../formCommon/FormSelect";
 import { FormButton } from "../formCommon/FormButton";
-import { PaperBox } from "../formCommon/PaperBox";
+import { PaperBox } from "../common/PaperBox";
 
 interface OrdersFilterProps {
   searchTerm: string;

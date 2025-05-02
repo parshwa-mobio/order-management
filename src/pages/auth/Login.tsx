@@ -19,7 +19,7 @@ const Login = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-      <FormContainer title="Sign in to your account" onSubmit={() => {}}>
+      <FormContainer title="Sign in to your account">
         <LoginForm onSuccess={handleLoginSuccess} />
       </FormContainer>
     </Container>

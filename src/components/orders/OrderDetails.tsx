@@ -12,7 +12,7 @@ import {
   TableRow
 } from "@mui/material";
 import { FormGrid } from "../formCommon/FormGrid";
-import { PaperBox } from "../formCommon/PaperBox";
+import { PaperBox } from "../common/PaperBox";
 
 interface OrderItem {
   _id: string;

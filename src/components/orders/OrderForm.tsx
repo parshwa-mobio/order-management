@@ -9,7 +9,7 @@ import {
   Grid
 } from "@mui/material";
 import { FormGrid } from "../formCommon/FormGrid";
-import { PaperBox } from "../formCommon/PaperBox";
+import { PaperBox } from "../common/PaperBox";
 
 interface OrderFormProps {
   containerType: string;
@@ -51,14 +51,15 @@ export const OrderForm = ({
             </FormControl>
           </FormGrid>
           <FormGrid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Delivery Date"
-              type="date"
-              value={deliveryDate}
-              onChange={(e) => onDeliveryDateChange(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
+            <FormControl fullWidth>
+              <InputLabel shrink>Delivery Date</InputLabel>
+              <TextField
+                fullWidth
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => onDeliveryDateChange(e.target.value)}
+              />
+            </FormControl>
           </FormGrid>
         </Grid>
       </PaperBox>

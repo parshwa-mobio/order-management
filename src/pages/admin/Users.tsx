@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useUsers } from "../../hooks/useUsers";
 import { Box, IconButton } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import { PageContainer } from "../../components/formCommon/PageContainer";
-import { DataTable } from "../../components/formCommon/DataTable";
-import { SearchField } from '../../components/formCommon/SearchField';
-import { FilterSelect } from '../../components/formCommon/FilterSelect';
-import { StatusChip } from '../../components/formCommon/StatusChip';
+import { PageContainer } from "../../components/common/PageContainer";
+import { FormTable } from "../../components/common/FormTable";
+import { SearchField } from '../../components/common/SearchField';
+import { FilterSelect } from '../../components/common/FilterSelect';
+import { StatusChip } from '../../components/common/StatusChip';
 import { FormGrid } from '../../components/formCommon/FormGrid';
 
 const Users = () => {
@@ -86,7 +86,7 @@ const Users = () => {
         </FormGrid>
       </FormGrid>
 
-      <DataTable
+      <FormTable
         columns={columns}
         rows={filteredUsers}
         loading={loading}

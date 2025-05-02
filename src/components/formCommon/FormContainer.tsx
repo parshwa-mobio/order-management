@@ -5,7 +5,7 @@ import { FormTypography } from "./FormTypography";
 interface FormContainerProps {
   title: string;
   children: ReactNode;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit?: (e: React.FormEvent) => void;
 }
 
 export const FormContainer = ({
@@ -19,7 +19,7 @@ export const FormContainer = ({
         {title}
       </FormTypography>
       <Box
-        component="form"
+        component={onSubmit ? "form" : "div"}
         onSubmit={onSubmit}
         sx={{ display: "flex", flexDirection: "column", gap: 3 }}
       >

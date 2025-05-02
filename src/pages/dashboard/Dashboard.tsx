@@ -1,6 +1,20 @@
-import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useDashboard } from "../../hooks/useDashboard";
+import { AdminDashboard } from "./AdminDashboard";
+import { SalesDashboard } from "./SalesDashboard";
+import { DistributorDashboard } from "./DistributorDashboard";
+import { ExportDashboard } from "./ExportDashboard";
+import { FormGrid } from "../../components/formCommon/FormGrid";
+import { FormCard } from "../../components/formCommon/FormCard";
+import { FormChart } from "../../components/formCommon/FormChart";
+import { FormTable } from "../../components/formCommon/FormTable";
+import { FormLoading } from "../../components/formCommon/FormLoading";
+import { FormAlert } from "../../components/formCommon/FormAlert";
+import { Box, Typography, Container } from "@mui/material";
 import {
+  PieChart,
+  Pie,
+  Cell,
   BarChart,
   Bar,
   XAxis,
@@ -8,113 +22,13 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { useToast } from "../../hooks/useToast";
-import { AdminDashboard } from "./AdminDashboard";
-import { SalesDashboard } from "./SalesDashboard";
-import { DistributorDashboard } from "./DistributorDashboard";
-import { ExportDashboard } from "./ExportDashboard";
-import { FormGrid } from "../../components/formCommon/FormGrid";
-import {
-  Box,
-  Typography,
-  Container,
-  Grid,
-  CircularProgress,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Alert
-} from "@mui/material";
-
-interface OrderSummary {
-  totalOrders: number;
-  pendingOrders: number;
-  completedOrders: number;
-  revenue: number;
-}
-
-interface ClaimsSummary {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-}
-
-interface TopProduct {
-  name: string;
-  quantity: number;
-  revenue: number;
-}
 
 const DefaultDashboard = () => {
-  const [orderSummary, setOrderSummary] = useState<OrderSummary>({
-    totalOrders: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    revenue: 0,
-  });
-  const [claimsSummary, setClaimsSummary] = useState<ClaimsSummary>({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-  });
-  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { showToast } = useToast();
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const headers = { Authorization: `Bearer ${token}` };
-
-        const [orderRes, claimsRes, productsRes] = await Promise.all([
-          fetch("http://localhost:5000/api/dashboard/orders", { headers }),
-          fetch("http://localhost:5000/api/dashboard/claims", { headers }),
-          fetch("http://localhost:5000/api/dashboard/top-products", {
-            headers,
-          }),
-        ]);
-
-        const orderData = await orderRes.json();
-        const claimsData = await claimsRes.json();
-        const productsData = await productsRes.json();
-
-        setOrderSummary(orderData);
-        setClaimsSummary(claimsData);
-        setTopProducts(productsData);
-      } catch (error) {
-        showToast("Failed to fetch dashboard data", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  const { loading, orderSummary, claimsSummary, topProducts } = useDashboard();
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh'
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <FormLoading fullScreen />;
   }
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -122,141 +36,103 @@ const DefaultDashboard = () => {
   return (
     <Container maxWidth="xl">
       <Box sx={{ py: 3 }}>
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: "bold" }}>
           Dashboard
         </Typography>
 
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <FormGrid container spacing={3} sx={{ mb: 4 }}>
           <FormGrid xs={12} sm={6} md={3}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Total Orders
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
-                {orderSummary.totalOrders}
-              </Typography>
-            </Paper>
+            <FormCard
+              title="Total Orders"
+              value={orderSummary.totalOrders}
+              icon="📦"
+            />
           </FormGrid>
 
           <FormGrid xs={12} sm={6} md={3}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Pending Orders
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
-                {orderSummary.pendingOrders}
-              </Typography>
-            </Paper>
+            <FormCard
+              title="Pending Orders"
+              value={orderSummary.pendingOrders}
+              icon="⏳"
+            />
           </FormGrid>
 
           <FormGrid xs={12} sm={6} md={3}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Revenue
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
-                ${orderSummary.revenue.toLocaleString()}
-              </Typography>
-            </Paper>
+            <FormCard
+              title="Revenue"
+              value={`$${orderSummary.revenue.toLocaleString()}`}
+              icon="💰"
+            />
           </FormGrid>
 
           <FormGrid xs={12} sm={6} md={3}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                Total Claims
-              </Typography>
-              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
-                {claimsSummary.total}
-              </Typography>
-            </Paper>
+            <FormCard
+              title="Total Claims"
+              value={claimsSummary.total}
+              icon="📝"
+            />
           </FormGrid>
-        </Grid>
+        </FormGrid>
 
-        <Grid container spacing={3}>
+        <FormGrid container spacing={3}>
           <FormGrid xs={12} lg={6}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Orders Status
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <PieChart width={400} height={300}>
-                  <Pie
-                    data={[
-                      { name: "Completed", value: orderSummary.completedOrders },
-                      { name: "Pending", value: orderSummary.pendingOrders },
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label
-                  >
-                    {COLORS.map((color, index) => (
-                      <Cell key={`cell-${color}-${index}`} fill={color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </Box>
-            </Paper>
-          </FormGrid>
-
-          <FormGrid xs={12} lg={6}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Claims Status
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <BarChart
-                  width={400}
-                  height={300}
+            <FormChart title="Orders Status">
+              <PieChart width={400} height={300}>
+                <Pie
                   data={[
-                    { name: "Pending", value: claimsSummary.pending },
-                    { name: "Approved", value: claimsSummary.approved },
-                    { name: "Rejected", value: claimsSummary.rejected },
+                    { name: "Completed", value: orderSummary.completedOrders },
+                    { name: "Pending", value: orderSummary.pendingOrders },
                   ]}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
-              </Box>
-            </Paper>
+                  {COLORS.map((color, index) => (
+                    <Cell key={`cell-${color}-${index}`} fill={color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </FormChart>
+          </FormGrid>
+
+          <FormGrid xs={12} lg={6}>
+            <FormChart title="Claims Status">
+              <BarChart
+                width={400}
+                height={300}
+                data={[
+                  { name: "Pending", value: claimsSummary.pending },
+                  { name: "Approved", value: claimsSummary.approved },
+                  { name: "Rejected", value: claimsSummary.rejected },
+                ]}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#8884d8" />
+              </BarChart>
+            </FormChart>
           </FormGrid>
 
           <FormGrid xs={12}>
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Top Products
-              </Typography>
-              <TableContainer>
-                <Table sx={{ minWidth: 650 }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Product Name</TableCell>
-                      <TableCell>Quantity Sold</TableCell>
-                      <TableCell>Revenue</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {topProducts.map((product) => (
-                      <TableRow key={`product-${product.name}-${product.quantity}`}>
-                        <TableCell>{product.name}</TableCell>
-                        <TableCell>{product.quantity}</TableCell>
-                        <TableCell>${product.revenue.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
+            <FormTable
+              title="Top Products"
+              columns={[
+                { field: "name", headerName: "Product Name" },
+                { field: "quantity", headerName: "Quantity Sold" },
+                { field: "revenue", headerName: "Revenue" },
+              ]}
+              rows={topProducts}
+            />
           </FormGrid>
-        </Grid>
+        </FormGrid>
       </Box>
     </Container>
   );
@@ -265,13 +141,24 @@ const DefaultDashboard = () => {
 const Dashboard = () => {
   const { user } = useAuth();
 
-  if (!user) return (
-    <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Alert severity="info" sx={{ width: '100%', maxWidth: 500 }}>
-        Please log in to access the dashboard
-      </Alert>
-    </Box>
-  );
+  if (!user) {
+    return (
+      <Box
+        sx={{
+          p: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <FormAlert
+          severity="info"
+          message="Please log in to access the dashboard"
+        />
+      </Box>
+    );
+  }
 
   switch (user.role) {
     case "admin":

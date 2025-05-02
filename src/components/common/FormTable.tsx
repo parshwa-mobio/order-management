@@ -15,7 +15,7 @@ interface Column {
   renderCell?: (row: any) => React.ReactNode;
 }
 
-interface DataTableProps {
+interface FormTableProps {
   columns: Column[];
   rows: any[];
   loading?: boolean;
@@ -54,7 +54,7 @@ const renderTableBody = (columns: Column[], rows: any[], loading: boolean, empty
   ));
 };
 
-export const DataTable = ({ columns, rows, loading = false, emptyMessage = 'No data available' }: DataTableProps) => {
+export const FormTable = ({ columns, rows, loading = false, emptyMessage = 'No data available' }: FormTableProps) => {
   return (
     <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2 }}>
       <Table>

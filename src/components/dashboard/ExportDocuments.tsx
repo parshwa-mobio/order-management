@@ -34,7 +34,7 @@ export const ExportDocuments = ({ documents }: ExportDocumentsProps) => {
 
       <Grid container spacing={3}>
         {documents.map((doc) => (
-          <Grid item xs={12} md={6} lg={4} key={doc.id} component="div">
+          <Grid item xs={12} md={6} lg={4} key={doc.id}>
             <Card
               variant="outlined"
               sx={{

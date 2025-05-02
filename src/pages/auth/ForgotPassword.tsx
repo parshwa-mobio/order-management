@@ -42,7 +42,7 @@ const ForgotPassword = () => {
     return (
       <FormContainer title="Check your email" onSubmit={() => {}}>
         <FormTypography variant="body2" color="text.secondary">
-          If an account exists for {email}, you will receive a password reset link.
+            If an account exists for {email}, you will receive a password reset link.
         </FormTypography>
       </FormContainer>
     );
@@ -50,31 +50,31 @@ const ForgotPassword = () => {
 
   return (
     <FormContainer title="Reset your password" onSubmit={handleSubmit}>
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
       <FormTextField
-        required
-        fullWidth
-        id="email"
-        label="Email Address"
-        name="email"
-        autoComplete="email"
-        autoFocus
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
         sx={{ mb: 2 }}
-      />
+          />
 
       <FormButton
-        type="submit"
-        fullWidth
-        variant="contained"
-      >
-        Reset Password
+            type="submit"
+            fullWidth
+            variant="contained"
+          >
+            Reset Password
       </FormButton>
     </FormContainer>
   );

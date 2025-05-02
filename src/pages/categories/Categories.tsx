@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useCategories } from "../../hooks/useCategories";
-import { PageContainer } from "../../components/formCommon/PageContainer";
-import { DataTable } from "../../components/formCommon/DataTable";
+import { PageContainer } from "../../components/common/PageContainer";
+import { FormTable } from "../../components/common/FormTable";
 import { Button, Box } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import AddCategoryForm from "../../components/categories/AddCategoryForm";
@@ -77,7 +77,7 @@ const Categories = () => {
     >
       <AddCategoryForm onCreate={handleCreate} creating={creating} />
       <Box sx={{ mt: 3 }}>
-        <DataTable
+        <FormTable
           columns={columns}
           rows={categories}
           loading={loading}

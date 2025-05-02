@@ -13,6 +13,8 @@ interface FormTextFieldProps extends Omit<TextFieldProps, 'onChange'> {
   disabled?: boolean;
   placeholder?: string;
   size?: "small" | "medium";
+  startAdornment?: React.ReactNode;
+  endAdornment?: React.ReactNode;
 }
 
 export const FormTextField: React.FC<FormTextFieldProps> = ({
@@ -26,6 +28,8 @@ export const FormTextField: React.FC<FormTextFieldProps> = ({
   error,
   disabled,
   placeholder,
+  startAdornment,
+  endAdornment,
   ...props
 }) => {
   return (

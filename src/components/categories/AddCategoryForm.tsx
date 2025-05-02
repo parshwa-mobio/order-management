@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { Category } from "../../hooks/useCategories";
 
@@ -7,17 +7,28 @@ interface AddCategoryFormProps {
   creating: boolean;
 }
 
+const initialFormState = { name: "", description: "", imageUrl: "" };
+
 const AddCategoryForm: React.FC<AddCategoryFormProps> = ({
   onCreate,
   creating,
 }) => {
-  const [form, setForm] = useState({ name: "", description: "", imageUrl: "" });
+  const [form, setForm] = useState(initialFormState);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     await onCreate(form);
-    setForm({ name: "", description: "", imageUrl: "" });
-  };
+    setForm(initialFormState);
+  }, [form, onCreate]);
+
+  const handleInputChange = useCallback((field: keyof typeof form) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+  }, []);
+
+  const inputClasses = "border rounded px-3 py-2 flex-1";
+  const buttonClasses = "inline-flex items-center px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700";
 
   return (
     <form
@@ -28,27 +39,27 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({
         type="text"
         placeholder="Name"
         value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        className="border rounded px-3 py-2 flex-1"
+        onChange={handleInputChange("name")}
+        className={inputClasses}
         required
       />
       <input
         type="text"
         placeholder="Description"
         value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        className="border rounded px-3 py-2 flex-1"
+        onChange={handleInputChange("description")}
+        className={inputClasses}
       />
       <input
         type="text"
         placeholder="Image URL"
         value={form.imageUrl}
-        onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-        className="border rounded px-3 py-2 flex-1"
+        onChange={handleInputChange("imageUrl")}
+        className={inputClasses}
       />
       <button
         type="submit"
-        className="inline-flex items-center px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+        className={buttonClasses}
         disabled={creating}
       >
         <Plus className="h-4 w-4 mr-2" />

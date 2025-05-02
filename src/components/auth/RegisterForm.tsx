@@ -62,11 +62,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
   return (
     <FormBox>
-      {error && (
+        {error && (
         <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+            {error}
+          </Alert>
+        )}
 
       <form onSubmit={handleSubmit} noValidate>
         <FormTextField
@@ -112,17 +112,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         />
 
         <FormSelect
-          id="role"
-          name="role"
+            id="role"
+            name="role"
           label="Role"
-          value={formData.role}
-          onChange={handleSelectChange}
+            value={formData.role}
+            onChange={handleSelectChange}
           sx={{ mb: 2 }}
-        >
-          <MenuItem value="dealer">Dealer</MenuItem>
-          <MenuItem value="distributor">Distributor</MenuItem>
-          <MenuItem value="sales">Sales Team</MenuItem>
-          <MenuItem value="exportTeam">Export Team</MenuItem>
+          >
+            <MenuItem value="dealer">Dealer</MenuItem>
+            <MenuItem value="distributor">Distributor</MenuItem>
+            <MenuItem value="sales">Sales Team</MenuItem>
+            <MenuItem value="exportTeam">Export Team</MenuItem>
         </FormSelect>
 
         <FormButton

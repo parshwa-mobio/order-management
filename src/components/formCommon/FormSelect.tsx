@@ -1,5 +1,10 @@
 import React from "react";
-import { FormControl, InputLabel, Select, FormHelperText, SelectChangeEvent } from "@mui/material";
+import { FormControl, InputLabel, Select, FormHelperText, SelectChangeEvent, MenuItem } from "@mui/material";
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
 
 interface FormSelectProps {
   id: string;
@@ -7,7 +12,8 @@ interface FormSelectProps {
   label: string;
   value: string;
   onChange: (e: SelectChangeEvent) => void;
-  children: React.ReactNode;
+  options?: readonly SelectOption[];
+  children?: React.ReactNode;
   fullWidth?: boolean;
   required?: boolean;
   error?: boolean;
@@ -21,6 +27,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
   label,
   value,
   onChange,
+  options,
   children,
   fullWidth = true,
   required = false,
@@ -39,7 +46,15 @@ export const FormSelect: React.FC<FormSelectProps> = ({
         label={label}
         onChange={onChange}
       >
-        {children}
+        {options ? (
+          options.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))
+        ) : (
+          children
+        )}
       </Select>
       {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>

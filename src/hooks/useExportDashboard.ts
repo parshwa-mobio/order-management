@@ -58,66 +58,78 @@ export interface GlobalAlert {
   date: string;
 }
 
+const fetchData = async (url: string, headers: HeadersInit) => {
+  const response = await fetch(url, { headers });
+  return response.json();
+};
+
+const handleError = (error: unknown, showToast: ReturnType<typeof useToast>['showToast']) => {
+  if (error instanceof Error) {
+    showToast(`Failed to fetch dashboard data: ${error.message}`, "error");
+  } else {
+    showToast("Failed to fetch dashboard data: Unknown error", "error");
+  }
+};
+
 export const useExportDashboard = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([]);
-  const [returns, setReturns] = useState<InternationalReturn[]>([]);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [alerts, setAlerts] = useState<GlobalAlert[]>([]);
+  const [dashboardData, setDashboardData] = useState<{
+    shipments: Shipment[];
+    orderStatuses: OrderStatus[];
+    returns: InternationalReturn[];
+    documents: Document[];
+    alerts: GlobalAlert[];
+  }>({
+    shipments: [],
+    orderStatuses: [],
+    returns: [],
+    documents: [],
+    alerts: [],
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!user?.id) return;
+
       try {
         const token = localStorage.getItem("token");
         const headers = { Authorization: `Bearer ${token}` };
         const baseUrl = import.meta.env.VITE_API_BASE;
 
-        const [
-          shipmentsResponse,
-          ordersResponse,
-          returnsResponse,
-          notificationsResponse,
-          documentsResponse,
-        ] = await Promise.all([
-          fetch(`${baseUrl}/shipment?scope=global`, { headers }),
-          fetch(`${baseUrl}/orders?scope=export`, { headers }),
-          fetch(`${baseUrl}/returns?scope=international`, { headers }),
-          fetch(`${baseUrl}/notifications`, { headers }),
-          fetch(`${baseUrl}/documents?type=export`, { headers }),
-        ]);
+        const endpoints = {
+          shipments: `${baseUrl}/shipment?scope=global`,
+          orders: `${baseUrl}/orders?scope=export`,
+          returns: `${baseUrl}/returns?scope=international`,
+          notifications: `${baseUrl}/notifications`,
+          documents: `${baseUrl}/documents?type=export`,
+        };
 
-        const [shipments, orders, returns, notifications, documents] =
-          await Promise.all([
-            shipmentsResponse.json(),
-            ordersResponse.json(),
-            returnsResponse.json(),
-            notificationsResponse.json(),
-            documentsResponse.json(),
-          ]);
-
-        setShipments(shipments);
-        setOrderStatuses(orders);
-        setReturns(returns);
-        setDocuments(documents);
-        setAlerts(
-          notifications.filter(
-            (n: GlobalAlert) => n.type === "shipment" || n.type === "return",
-          ),
+        const responses = await Promise.all(
+          Object.values(endpoints).map(url => fetchData(url, headers))
         );
+
+        const [shipments, orders, returns, notifications, documents] = responses;
+
+        setDashboardData({
+          shipments,
+          orderStatuses: orders,
+          returns,
+          documents,
+          alerts: notifications.filter(
+            (n: GlobalAlert) => n.type === "shipment" || n.type === "return"
+          ),
+        });
       } catch (error) {
-        showToast("Failed to fetch dashboard data", "error");
+        handleError(error, showToast);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user?.id) {
-      fetchDashboardData();
-    }
+    fetchDashboardData();
   }, [user?.id, showToast]);
 
-  return { loading, shipments, orderStatuses, returns, documents, alerts };
+  return { loading, ...dashboardData };
 };
