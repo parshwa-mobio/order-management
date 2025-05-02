@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
+import { Container, SelectChangeEvent } from "@mui/material";
+import { FormTypography } from "../../components/formCommon/FormTypography";
+import { FormTextField } from "../../components/formCommon/FormTextField";
+import { FormSelect } from "../../components/formCommon/FormSelect";
+import { FormButton } from "../../components/formCommon/FormButton";
+import { PaperBox } from "../../components/formCommon/PaperBox";
+import { FormBox } from "../../components/formCommon/FormBox";
+import { FormGrid } from "../../components/formCommon/FormGrid";
 
 interface FormData {
   sku: string;
@@ -64,7 +72,7 @@ const ProductEdit = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -83,190 +91,158 @@ const ProductEdit = () => {
     }));
   };
 
+  const categoryOptions = [
+    { value: "", label: "Select Category" },
+    { value: "distributor", label: "Distributor" },
+    { value: "dealer", label: "Dealer" },
+    { value: "sales", label: "Sales" },
+    { value: "exportTeam", label: "Export Team" },
+  ];
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-2xl bg-white p-6 rounded-lg shadow"
-      >
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              SKU
-            </label>
-            <input
-              type="text"
-              name="sku"
-              value={formData.sku}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            >
-              <option value="">Select Category</option>
-              <option value="distributor">Distributor</option>
-              <option value="dealer">Dealer</option>
-              <option value="sales">Sales</option>
-              <option value="exportTeam">Export Team</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Price
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              MOQ
-            </label>
-            <input
-              type="number"
-              name="moq"
-              value={formData.moq}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Stock
-            </label>
-            <input
-              type="number"
-              name="stock"
-              value={formData.stock}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Net Weight
-            </label>
-            <input
-              type="number"
-              name="netWeight"
-              value={formData.netWeight}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Gross Weight
-            </label>
-            <input
-              type="number"
-              name="grossWeight"
-              value={formData.grossWeight}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Volume
-            </label>
-            <input
-              type="number"
-              name="volume"
-              value={formData.volume}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              20ft Container Capacity
-            </label>
-            <input
-              type="number"
-              name="container20ftCapacity"
-              value={formData.container20ftCapacity || ""}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              40ft Container Capacity
-            </label>
-            <input
-              type="number"
-              name="container40ftCapacity"
-              value={formData.container40ftCapacity || ""}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              min="0"
-            />
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => navigate("/products")}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Update Product
-          </button>
-        </div>
-      </form>
-    </div>
+    <Container maxWidth="lg">
+      <FormBox p={3}>
+        <FormTypography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          color="primary.main"
+          sx={{ fontWeight: 'bold', mb: 4 }}
+        >
+          Edit Product
+        </FormTypography>
+        <PaperBox>
+          <FormBox component="form" onSubmit={handleSubmit} p={3}>
+            <FormBox component="div" sx={{ display: 'grid', gap: 3 }}>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  label="SKU"
+                  name="sku"
+                  value={formData.sku}
+                  onChange={handleChange}
+                  required
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  label="Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormSelect
+                  name="category"
+                  label="Category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  options={categoryOptions}
+                  required
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="Price"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="MOQ"
+                  name="moq"
+                  value={formData.moq}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="Stock"
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="Net Weight"
+                  name="netWeight"
+                  value={formData.netWeight}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="Gross Weight"
+                  name="grossWeight"
+                  value={formData.grossWeight}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="Volume"
+                  name="volume"
+                  value={formData.volume}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="20ft Container Capacity"
+                  name="container20ftCapacity"
+                  value={formData.container20ftCapacity || ""}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </FormGrid>
+              <FormGrid xs={12} md={6}>
+                <FormTextField
+                  type="number"
+                  label="40ft Container Capacity"
+                  name="container40ftCapacity"
+                  value={formData.container40ftCapacity || ""}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                />
+              </FormGrid>
+            </FormBox>
+            <FormBox mt={3} display="flex" justifyContent="flex-end">
+              <FormButton type="submit">
+                Save Changes
+              </FormButton>
+            </FormBox>
+          </FormBox>
+        </PaperBox>
+      </FormBox>
+    </Container>
   );
 };
 

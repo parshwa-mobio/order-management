@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { LoginForm } from "../../components/auth/LoginForm";
-import { Container, Typography, Box } from "@mui/material";
+import { Container } from "@mui/material";
+import { FormContainer } from "../../components/formCommon/FormContainer";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,24 +14,14 @@ const Login = () => {
       "sales",
       "exportTeam",
     ];
-    navigate(dashboardRoles.includes(role) ? "/" : "/");
+    navigate(dashboardRoles.includes(role) ? "/dashboard" : "/");
   };
 
   return (
     <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <Typography component="h1" variant="h5">
-          Sign in to your account
-        </Typography>
+      <FormContainer title="Sign in to your account" onSubmit={() => {}}>
         <LoginForm onSuccess={handleLoginSuccess} />
-      </Box>
+      </FormContainer>
     </Container>
   );
 };

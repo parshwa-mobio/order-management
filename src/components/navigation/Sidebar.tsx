@@ -1,8 +1,21 @@
-import { Fragment, useMemo } from "react";
-import { NavLink } from "react-router-dom";
-import { Dialog, Transition } from "@headlessui/react";
+import { useMemo } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
-  X,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  Divider,
+  Avatar,
+  useTheme,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import {
   PackageCheck,
   LayoutDashboard,
   ShoppingCart,
@@ -23,6 +36,8 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const location = useLocation();
 
   const navigation = useMemo(() => {
     const baseMenuItems = [
@@ -91,184 +106,150 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return baseMenuItems;
   }, [user]);
 
+  const sidebarContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+        <PackageCheck style={{ width: 32, height: 32, color: theme.palette.primary.main }} />
+        <Typography
+          variant="h6"
+          sx={{
+            ml: 1,
+            fontWeight: 600,
+            color: theme.palette.primary.main
+          }}
+        >
+          OrderPortal
+        </Typography>
+      </Box>
+
+      <Divider />
+
+      <List sx={{ flexGrow: 1, py: 2 }}>
+        {navigation.map((item) => {
+          const isActive = location.pathname === item.href;
+
+          return (
+            <ListItem key={item.name} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={item.href}
+                sx={{
+                  borderRadius: 1,
+                  my: 0.5,
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  bgcolor: isActive ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <ListItemIcon sx={{
+                  minWidth: 40,
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                }}>
+                  <item.icon style={{ width: 20, height: 20 }} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.name}
+                  sx={{
+                    '& .MuiTypography-root': {
+                      fontSize: 14,
+                      fontWeight: isActive ? 600 : 500
+                    }
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+
+      <Divider />
+
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar
+            sx={{
+              bgcolor: 'primary.light',
+              color: 'primary.dark',
+              width: 36,
+              height: 36,
+              fontSize: 14
+            }}
+          >
+            {user?.name?.charAt(0) ?? "U"}
+          </Avatar>
+          <Box sx={{ ml: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {user?.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user?.role
+                ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                : ""}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+
   return (
     <>
       {/* Mobile sidebar */}
-      <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="fixed inset-0 flex z-40 md:hidden"
-          onClose={setSidebarOpen}
-        >
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+      <Drawer
+        variant="temporary"
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 280,
+            boxShadow: 3
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
+          <IconButton
+            onClick={() => setSidebarOpen(false)}
+            size="small"
+            edge="end"
+            aria-label="close sidebar"
           >
-            <Dialog.Overlay className="fixed inset-0 bg-gray-600 bg-opacity-75" />
-          </Transition.Child>
-
-          <Transition.Child
-            as={Fragment}
-            enter="transition ease-in-out duration-300 transform"
-            enterFrom="-translate-x-full"
-            enterTo="translate-x-0"
-            leave="transition ease-in-out duration-300 transform"
-            leaveFrom="translate-x-0"
-            leaveTo="-translate-x-full"
-          >
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-in-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in-out duration-300"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-              >
-                <div className="absolute top-0 right-0 -mr-12 pt-2">
-                  <button
-                    type="button"
-                    className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <span className="sr-only">Close sidebar</span>
-                    <X className="h-6 w-6 text-white" aria-hidden="true" />
-                  </button>
-                </div>
-              </Transition.Child>
-
-              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                <div className="flex-shrink-0 flex items-center px-4">
-                  <PackageCheck className="h-8 w-auto text-blue-600" />
-                  <span className="ml-2 text-xl font-semibold text-blue-600">
-                    OrderPortal
-                  </span>
-                </div>
-                <nav className="mt-5 px-2 space-y-1">
-                  {navigation.map((item) => (
-                    <NavLink
-                      key={item.name}
-                      to={item.href}
-                      className={({ isActive }) =>
-                        `${
-                          isActive
-                            ? "bg-blue-50 text-blue-600"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`
-                      }
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <item.icon
-                        className="mr-4 flex-shrink-0 h-6 w-6"
-                        aria-hidden="true"
-                      />
-                      {item.name}
-                    </NavLink>
-                  ))}
-                </nav>
-              </div>
-
-              <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-                <div className="flex-shrink-0 group block">
-                  <div className="flex items-center">
-                    <div>
-                      <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-blue-100">
-                        <span className="text-sm font-medium leading-none text-blue-700">
-                          {user?.name?.charAt(0) || "U"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-base font-medium text-gray-700 group-hover:text-gray-900">
-                        {user?.name}
-                      </p>
-                      <p className="text-sm font-medium text-gray-500 group-hover:text-gray-700">
-                        {user?.role
-                          ? user.role.charAt(0).toUpperCase() +
-                            user.role.slice(1)
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Transition.Child>
-
-          <div className="flex-shrink-0 w-14">
-            {/* Force sidebar to shrink to fit close icon */}
-          </div>
-        </Dialog>
-      </Transition.Root>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        {sidebarContent}
+      </Drawer>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 border-r border-gray-200 bg-white">
-            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <div className="flex items-center flex-shrink-0 px-4">
-                <PackageCheck className="h-8 w-auto text-blue-600" />
-                <span className="ml-2 text-xl font-semibold text-blue-600">
-                  OrderPortal
-                </span>
-              </div>
-              <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
-                {navigation.map((item) => (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
-                    className={({ isActive }) =>
-                      `${
-                        isActive
-                          ? "bg-blue-50 text-blue-600"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`
-                    }
-                  >
-                    <item.icon
-                      className="mr-3 flex-shrink-0 h-6 w-6"
-                      aria-hidden="true"
-                    />
-                    {item.name}
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
-
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <div className="flex-shrink-0 w-full group block">
-                <div className="flex items-center">
-                  <div>
-                    <div className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-blue-100">
-                      <span className="text-sm font-medium leading-none text-blue-700">
-                        {user?.name?.charAt(0) || "U"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                      {user?.name}
-                    </p>
-                    <p className="text-xs font-medium text-gray-500 group-hover:text-gray-700">
-                      {user?.role
-                        ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-                        : ""}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 240,
+            borderRight: `1px solid ${theme.palette.divider}`,
+            zIndex: theme.zIndex.appBar - 1, // Below app bar but above content
+            height: '100%',
+            position: 'fixed',
+            top: 0,
+            left: 0
+          },
+        }}
+        open
+      >
+        {sidebarContent}
+      </Drawer>
     </>
   );
 };
 
 export default Sidebar;
+

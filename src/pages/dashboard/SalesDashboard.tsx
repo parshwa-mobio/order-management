@@ -6,6 +6,14 @@ import { DistributorPerformancePanel } from "../../components/dashboard/Distribu
 import { LowStockAlertsPanel } from "../../components/dashboard/LowStockAlertsPanel";
 import { ReturnRequestsPanel } from "../../components/dashboard/ReturnRequestsPanel";
 import { RecentOrdersTable } from "../../components/dashboard/RecentOrdersTable";
+import {
+  Box,
+  Typography,
+  Grid,
+  CircularProgress,
+  Container,
+  Stack
+} from "@mui/material";
 
 export const SalesDashboard = () => {
   const [selectedDistributorId, setSelectedDistributorId] =
@@ -22,31 +30,48 @@ export const SalesDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Sales Dashboard</h1>
+    <Container maxWidth="xl">
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+          Sales Dashboard
+        </Typography>
 
-      <SalesTargetChart salesTargets={salesTargets} />
-      <GrowthTrendChart growthTrends={growthTrends} />
+        <Stack spacing={4}>
+          <SalesTargetChart salesTargets={salesTargets} />
+          <GrowthTrendChart growthTrends={growthTrends} />
 
-      <DistributorPerformancePanel
-        distributorPerformance={distributorPerformance}
-        selectedDistributorId={selectedDistributorId}
-        onDistributorChange={setSelectedDistributorId}
-      />
+          <DistributorPerformancePanel
+            distributorPerformance={distributorPerformance}
+            selectedDistributorId={selectedDistributorId}
+            onDistributorChange={setSelectedDistributorId}
+          />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LowStockAlertsPanel lowStockAlerts={lowStockAlerts} />
-        <ReturnRequestsPanel returnRequests={returnRequests} />
-      </div>
+          <Grid container spacing={3}>
+            <Grid item xs={12} lg={6}>
+              <LowStockAlertsPanel lowStockAlerts={lowStockAlerts} />
+            </Grid>
+            <Grid item xs={12} lg={6}>
+              <ReturnRequestsPanel returnRequests={returnRequests} />
+            </Grid>
+          </Grid>
 
-      <RecentOrdersTable recentOrders={recentOrders} />
-    </div>
+          <RecentOrdersTable recentOrders={recentOrders} />
+        </Stack>
+      </Box>
+    </Container>
   );
 };

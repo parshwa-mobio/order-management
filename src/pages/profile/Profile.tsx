@@ -35,8 +35,6 @@ const Profile = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Will be replaced with API call
-    console.log("Profile updated:", profile);
   };
 
   return (

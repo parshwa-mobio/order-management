@@ -1,3 +1,8 @@
+import React from "react";
+import { Card, CardContent, Typography, Box } from "@mui/material";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+
 interface DashboardCardProps {
   title: string;
   value: number | string;
@@ -15,21 +20,45 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
   trend,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-500 text-sm">{title}</p>
-          <h3 className="text-2xl font-semibold mt-2">{value}</h3>
-          {trend && (
-            <p
-              className={`text-sm mt-2 ${trend.isPositive ? "text-green-500" : "text-red-500"}`}
-            >
-              {trend.isPositive ? "↑" : "↓"} {trend.value}%
-            </p>
-          )}
-        </div>
-        <div className="text-blue-500 text-2xl">{icon}</div>
-      </div>
-    </div>
+    <Card elevation={2} sx={{ height: "100%" }}>
+      <CardContent sx={{ p: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <Box>
+            <Typography variant="body2" color="text.secondary">
+              {title}
+            </Typography>
+            <Typography variant="h5" sx={{ mt: 1, fontWeight: 600 }}>
+              {value}
+            </Typography>
+            {trend && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mt: 1,
+                  color: trend.isPositive ? "success.main" : "error.main",
+                }}
+              >
+                {trend.isPositive ? (
+                  <ArrowUpwardIcon fontSize="small" />
+                ) : (
+                  <ArrowDownwardIcon fontSize="small" />
+                )}
+                <Typography variant="body2" sx={{ ml: 0.5 }}>
+                  {trend.value}%
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          <Box sx={{ color: "primary.main", fontSize: 40 }}>{icon}</Box>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };

@@ -155,7 +155,7 @@ export const useAdminDashboard = () => {
             },
           ),
         ]);
-        console.log({ ordersSummary });
+       
         setData({
           orders: {
             ...ordersSummary,

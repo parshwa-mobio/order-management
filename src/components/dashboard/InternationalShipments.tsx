@@ -1,4 +1,12 @@
 import { Shipment } from "../../hooks/useExportDashboard";
+import {
+  Paper,
+  Typography,
+  Box,
+  Stack,
+  Chip,
+  Grid
+} from "@mui/material";
 
 interface InternationalShipmentsProps {
   shipments: Shipment[];
@@ -8,46 +16,95 @@ export const InternationalShipments = ({
   shipments,
 }: InternationalShipmentsProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">International Shipments</h2>
-      <div className="space-y-6">
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+    >
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        International Shipments
+      </Typography>
+
+      <Stack spacing={3}>
         {shipments.map((shipment) => (
-          <div key={shipment.id} className="border p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-medium">
+          <Paper
+            key={shipment.id}
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'all 0.2s',
+              '&:hover': {
+                boxShadow: (theme) => theme.shadows[1],
+                bgcolor: 'background.default'
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                 Tracking #{shipment.trackingNumber}
-              </h3>
-              <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                  shipment.status === "delivered"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-blue-100 text-blue-800"
-                }`}
-              >
-                {shipment.status}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-600">Origin</p>
-                <p>{shipment.origin}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Destination</p>
-                <p>{shipment.destination}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Carrier</p>
-                <p>{shipment.carrier}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">ETA</p>
-                <p>{shipment.eta}</p>
-              </div>
-            </div>
-          </div>
+              </Typography>
+              <Chip
+                label={shipment.status}
+                color={shipment.status === "delivered" ? "success" : "info"}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Origin
+                  </Typography>
+                  <Typography variant="body1">
+                    {shipment.origin}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Destination
+                  </Typography>
+                  <Typography variant="body1">
+                    {shipment.destination}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Carrier
+                  </Typography>
+                  <Typography variant="body1">
+                    {shipment.carrier}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    ETA
+                  </Typography>
+                  <Typography variant="body1">
+                    {shipment.eta}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   );
 };

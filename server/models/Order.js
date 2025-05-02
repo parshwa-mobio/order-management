@@ -4,8 +4,7 @@ const orderSchema = new mongoose.Schema(
   {
     orderNumber: {
       type: String,
-      unique: true,
-      sparse: true, // Allows null values during document creation
+      index: { unique: true, sparse: true }, // Define index here instead of using schema.index()
     },
     distributorId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -113,18 +112,31 @@ const orderSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically handles createdAt and updatedAt
-  },
+    timestamps: true,
+  }
 );
 
-// Auto-generate order number before saving
+// Improved auto-generate order number before saving
 orderSchema.pre("save", async function (next) {
   try {
     if (!this.orderNumber) {
-      const count = await mongoose.model("Order").countDocuments();
+      // Get the latest order number for the current month
       const year = new Date().getFullYear();
       const month = String(new Date().getMonth() + 1).padStart(2, "0");
-      this.orderNumber = `ORD-${year}${month}-${String(count + 1).padStart(5, "0")}`;
+      const prefix = `ORD-${year}${month}-`;
+      
+      const latestOrder = await mongoose
+        .model("Order")
+        .findOne({ orderNumber: new RegExp(`^${prefix}`) })
+        .sort({ orderNumber: -1 });
+
+      let nextNumber = 1;
+      if (latestOrder && latestOrder.orderNumber) {
+        const currentNumber = parseInt(latestOrder.orderNumber.split('-')[2]);
+        nextNumber = currentNumber + 1;
+      }
+
+      this.orderNumber = `${prefix}${String(nextNumber).padStart(5, "0")}`;
     }
     next();
   } catch (error) {
@@ -132,6 +144,9 @@ orderSchema.pre("save", async function (next) {
   }
 });
 
+// Remove the duplicate schema.index() call
+// orderSchema.index({ orderNumber: 1 }, { unique: true, sparse: true }); // Remove this line
+
 const Order = mongoose.model("Order", orderSchema);
 
-export default Order;
+export default Order;  // This is a default export

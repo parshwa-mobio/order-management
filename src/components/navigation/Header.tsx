@@ -1,7 +1,23 @@
 import { Bell, Menu, Search } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  InputBase,
+  Badge,
+  Avatar,
+  Menu as MuiMenu,
+  MenuItem,
+  Box,
+  alpha,
+  useTheme,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -9,107 +25,151 @@ interface HeaderProps {
 
 const Header = ({ setSidebarOpen }: HeaderProps) => {
   const { user, logout } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
+  const theme = useTheme();
+
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = () => {
+    handleMenuClose();
     logout();
     navigate("/login");
   };
 
   return (
-    <header className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
-      <button
-        type="button"
-        className="px-4 border-r border-gray-200 text-gray-500 md:hidden"
-        onClick={() => setSidebarOpen(true)}
-      >
-        <span className="sr-only">Open sidebar</span>
-        <Menu className="h-6 w-6" aria-hidden="true" />
-      </button>
+    <AppBar
+      position="sticky"
+      color="default"
+      elevation={2}
+      sx={{
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        bgcolor: 'background.paper',
+        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        width: { xs: '100%', md: 'calc(100% - 240px)' },
+        ml: { xs: 0, md: '240px' }
+      }}
+    >
+      <Toolbar>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="open drawer"
+          onClick={() => setSidebarOpen(true)}
+          sx={{ mr: 2, display: { md: 'none' } }}
+        >
+          <MenuIcon />
+        </IconButton>
 
-      <div className="flex-1 px-4 flex justify-between">
-        <div className="flex-1 flex">
-          <div className="w-full flex md:ml-0">
-            <label htmlFor="search-field" className="sr-only">
-              Search
-            </label>
-            <div className="relative w-full text-gray-400 focus-within:text-gray-600">
-              <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                <Search className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <input
-                id="search-field"
-                className="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent sm:text-sm"
-                placeholder="Search"
-                type="search"
-              />
-            </div>
-          </div>
-        </div>
+        <Box sx={{
+          position: 'relative',
+          borderRadius: 1,
+          bgcolor: (theme) => alpha(theme.palette.common.black, 0.05),
+          '&:hover': {
+            bgcolor: (theme) => alpha(theme.palette.common.black, 0.08),
+          },
+          mr: 2,
+          ml: 0,
+          width: { xs: '100%', sm: 'auto' },
+          flexGrow: 1
+        }}>
+          <Box sx={{
+            padding: theme => theme.spacing(0, 2),
+            height: '100%',
+            position: 'absolute',
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <SearchIcon />
+          </Box>
+          <InputBase
+            placeholder="Search…"
+            sx={{
+              color: 'inherit',
+              padding: theme => theme.spacing(1, 1, 1, 0),
+              paddingLeft: theme => `calc(1em + ${theme.spacing(4)})`,
+              transition: theme => theme.transitions.create('width'),
+              width: '100%',
+            }}
+          />
+        </Box>
 
-        <div className="ml-4 flex items-center md:ml-6">
-          {/* Notification button */}
-          <Link
+        <Box sx={{ display: 'flex', ml: 'auto' }}>
+          <IconButton
+            component={Link}
             to="/notifications"
-            className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            color="inherit"
+            size="large"
           >
-            <span className="sr-only">View notifications</span>
-            <Bell className="h-6 w-6" aria-hidden="true" />
-          </Link>
+            <Badge badgeContent={4} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
 
-          {/* Profile dropdown */}
-          <div className="ml-3 relative">
-            <div>
-              <button
-                type="button"
-                className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                id="user-menu-button"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-              >
-                <span className="sr-only">Open user menu</span>
-                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="font-medium text-blue-800">
-                    {user?.name?.charAt(0) || "U"}
-                  </span>
-                </div>
-              </button>
-            </div>
+          <IconButton
+            edge="end"
+            aria-label="account of current user"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleProfileMenuOpen}
+            color="inherit"
+            size="large"
+          >
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: 'primary.light',
+                color: 'primary.dark',
+                fontSize: 14
+              }}
+            >
+              {user?.name?.charAt(0) || "U"}
+            </Avatar>
+          </IconButton>
+        </Box>
 
-            {showProfileMenu && (
-              <div
-                className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="user-menu-button"
-              >
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  role="menuitem"
-                >
-                  Your Profile
-                </Link>
-                <Link
-                  to="/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  role="menuitem"
-                >
-                  Settings
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  role="menuitem"
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
+        <MuiMenu
+          id="menu-appbar"
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem
+            component={Link}
+            to="/profile"
+            onClick={handleMenuClose}
+          >
+            Profile
+          </MenuItem>
+          <MenuItem
+            component={Link}
+            to="/settings"
+            onClick={handleMenuClose}
+          >
+            Settings
+          </MenuItem>
+          <MenuItem onClick={handleLogout}>Sign out</MenuItem>
+        </MuiMenu>
+      </Toolbar>
+    </AppBar>
   );
 };
 

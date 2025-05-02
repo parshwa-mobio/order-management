@@ -1,4 +1,15 @@
 import { InternationalReturn } from "../../hooks/useExportDashboard";
+import {
+  Paper,
+  Typography,
+  Box,
+  Stack,
+  Chip,
+  Divider,
+  List,
+  ListItem,
+  ListItemText
+} from "@mui/material";
 
 interface InternationalReturnsProps {
   returns: InternationalReturn[];
@@ -8,39 +19,85 @@ export const InternationalReturns = ({
   returns,
 }: InternationalReturnsProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">International Returns</h2>
-      <div className="space-y-6">
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+    >
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        International Returns
+      </Typography>
+
+      <Stack spacing={3}>
         {returns.map((returnItem) => (
-          <div key={returnItem.id} className="border p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <h3 className="font-medium">{returnItem.distributorName}</h3>
-                <p className="text-sm text-gray-600">{returnItem.country}</p>
-              </div>
-              <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                  returnItem.status === "approved"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {returnItem.status}
-              </span>
-            </div>
-            <div className="mt-4 space-y-2">
+          <Paper
+            key={returnItem.id}
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'all 0.2s',
+              '&:hover': {
+                boxShadow: (theme) => theme.shadows[1],
+                bgcolor: 'background.default'
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                  {returnItem.distributorName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {returnItem.country}
+                </Typography>
+              </Box>
+              <Chip
+                label={returnItem.status}
+                color={returnItem.status === "approved" ? "success" : "warning"}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+
+            <Divider sx={{ my: 1.5 }} />
+
+            <List disablePadding>
               {returnItem.items.map((item, index) => (
-                <div key={index} className="text-sm">
-                  <span>{item.productName}</span>
-                  <span className="mx-2">-</span>
-                  <span>{item.quantity} units</span>
-                  <p className="text-gray-600 text-xs mt-1">{item.reason}</p>
-                </div>
+                <ListItem
+                  key={`${returnItem.id}-${item.productName}-${index}`}
+                  disablePadding
+                  sx={{ py: 0.75 }}
+                >
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2">
+                          {item.productName}
+                        </Typography>
+                        <Typography variant="body2" sx={{ mx: 1 }}>-</Typography>
+                        <Typography variant="body2">
+                          {item.quantity} units
+                        </Typography>
+                      </Box>
+                    }
+                    secondary={
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {item.reason}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
               ))}
-            </div>
-          </div>
+            </List>
+          </Paper>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   );
 };

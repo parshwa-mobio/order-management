@@ -1,4 +1,19 @@
 import { DistributorPerformance } from "../../hooks/useSalesDashboard";
+import {
+  Paper,
+  Typography,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Card,
+  CardContent,
+  SelectChangeEvent,
+  useTheme
+} from "@mui/material";
+import { FormGrid } from "../formCommon/FormGrid";
 
 interface DistributorPerformancePanelProps {
   distributorPerformance: DistributorPerformance[];
@@ -11,62 +26,123 @@ export const DistributorPerformancePanel = ({
   selectedDistributorId,
   onDistributorChange,
 }: DistributorPerformancePanelProps) => {
+  const theme = useTheme();
+
+  const handleChange = (event: SelectChangeEvent) => {
+    onDistributorChange(event.target.value);
+  };
+
+  const selectedDistributor = distributorPerformance.find(
+    (dist) => dist.id === selectedDistributorId
+  );
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Distributor Performance</h2>
-        <select
-          value={selectedDistributorId}
-          onChange={(e) => onDistributorChange(e.target.value)}
-          className="border rounded-md p-2"
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Distributor Performance
+        </Typography>
+
+        <FormControl
+          sx={{
+            minWidth: 200,
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: 'rgba(0, 0, 0, 0.23)',
+              },
+              '&:hover fieldset': {
+                borderColor: 'rgba(0, 0, 0, 0.5)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: (theme) => theme.palette.primary.main,
+              },
+            },
+          }}
+          size="small"
         >
-          <option value="">Select Distributor</option>
-          {distributorPerformance.map((dist) => (
-            <option key={dist.id} value={dist.id}>
-              {dist.name}
-            </option>
-          ))}
-        </select>
-      </div>
-      {selectedDistributorId && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {distributorPerformance.find(
-            (dist) => dist.id === selectedDistributorId,
-          )?.metrics && (
-            <>
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-800">Orders</h3>
-                <p className="text-2xl font-bold text-blue-900">
-                  {
-                    distributorPerformance.find(
-                      (dist) => dist.id === selectedDistributorId,
-                    )?.metrics.orderCount
-                  }
-                </p>
-              </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <h3 className="text-sm font-medium text-green-800">Revenue</h3>
-                <p className="text-2xl font-bold text-green-900">
-                  $
-                  {distributorPerformance
-                    .find((dist) => dist.id === selectedDistributorId)
-                    ?.metrics.revenue.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <h3 className="text-sm font-medium text-purple-800">Growth</h3>
-                <p className="text-2xl font-bold text-purple-900">
-                  {
-                    distributorPerformance.find(
-                      (dist) => dist.id === selectedDistributorId,
-                    )?.metrics.growth
-                  }
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+          <InputLabel id="distributor-select-label">Select Distributor</InputLabel>
+          <Select
+            labelId="distributor-select-label"
+            id="distributor-select"
+            value={selectedDistributorId}
+            label="Select Distributor"
+            onChange={handleChange}
+          >
+            <MenuItem value="">
+              <em>Select Distributor</em>
+            </MenuItem>
+            {distributorPerformance.map((dist) => (
+              <MenuItem key={dist.id} value={dist.id}>
+                {dist.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {selectedDistributorId && selectedDistributor?.metrics && (
+        <Grid container spacing={3}>
+          <FormGrid xs={12} md={4}>
+            <Card sx={{
+              bgcolor: theme.palette.info.light,
+              color: theme.palette.info.contrastText,
+              height: '100%'
+            }}>
+              <CardContent>
+                <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                  Orders
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  {selectedDistributor.metrics.orderCount}
+                </Typography>
+              </CardContent>
+            </Card>
+          </FormGrid>
+
+          <FormGrid xs={12} md={4}>
+            <Card sx={{
+              bgcolor: theme.palette.success.light,
+              color: theme.palette.success.contrastText,
+              height: '100%'
+            }}>
+              <CardContent>
+                <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                  Revenue
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  ${selectedDistributor.metrics.revenue.toLocaleString()}
+                </Typography>
+              </CardContent>
+            </Card>
+          </FormGrid>
+
+          <FormGrid xs={12} md={4}>
+            <Card sx={{
+              bgcolor: theme.palette.secondary.light,
+              color: theme.palette.secondary.contrastText,
+              height: '100%'
+            }}>
+              <CardContent>
+                <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                  Growth
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, mt: 1 }}>
+                  {selectedDistributor.metrics.growth}
+                </Typography>
+              </CardContent>
+            </Card>
+          </FormGrid>
+        </Grid>
       )}
-    </div>
+    </Paper>
   );
 };

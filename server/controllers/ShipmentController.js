@@ -1,6 +1,6 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
-import Order from "../models/Order.js";
+import Order  from "../models/Order.js";
 import { dpWorldService } from "../services/dpWorldService.js";
 import { shipmentService } from "../services/shipmentService.js";
 
@@ -120,6 +120,36 @@ export class ShipmentController {
     } catch (error) {
       logger.error("Failed to create shipment", error);
       return responseHandler.error(res, "Failed to create shipment");
+    }
+  }
+
+  async getShipmentByOrderId(req, res) {
+    try {
+      const { id } = req.params;
+      const order = await Order.findById(id)
+        .populate("user", "name email")
+        .lean();
+
+      if (!order) {
+        return responseHandler.notFound(res, "Order not found");
+      }
+
+      // Generate shipment info based on order status
+      const shipment = {
+        orderId: order._id,
+        status: order.status,
+        trackingNumber: order.trackingNumber || null,
+        erpStatus: order.erpStatus || "pending",
+        cargoTracking: order.cargoTracking || null,
+        estimatedDelivery: order.estimatedDelivery,
+        actualDelivery: order.actualDelivery || null,
+        carrier: order.carrier || "Default Carrier"
+      };
+
+      return responseHandler.success(res, shipment);
+    } catch (error) {
+      console.error("Error fetching shipment:", error);
+      return responseHandler.error(res, "Failed to fetch shipment information");
     }
   }
 }

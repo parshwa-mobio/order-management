@@ -1,5 +1,13 @@
 import { OrderStatus } from "../../hooks/useExportDashboard";
 import { Timeline } from "../Timeline";
+import {
+  Paper,
+  Typography,
+  Box,
+  Stack,
+  Chip,
+  Divider
+} from "@mui/material";
 
 interface OrderStatusTimelineProps {
   orderStatuses: OrderStatus[];
@@ -9,27 +17,53 @@ export const OrderStatusTimeline = ({
   orderStatuses,
 }: OrderStatusTimelineProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">Order Status Timeline</h2>
-      <div className="space-y-8">
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+    >
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        Order Status Timeline
+      </Typography>
+
+      <Stack spacing={3}>
         {orderStatuses.map((order) => (
-          <div key={order.id} className="border p-4 rounded-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium">{order.distributorName}</h3>
-              <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                  order.status === "completed"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }`}
-              >
-                {order.status}
-              </span>
-            </div>
+          <Paper
+            key={order.id}
+            variant="outlined"
+            sx={{
+              p: 2.5,
+              borderRadius: 2,
+              transition: 'all 0.2s',
+              '&:hover': {
+                boxShadow: (theme) => theme.shadows[1],
+                bgcolor: 'background.default'
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                {order.distributorName}
+              </Typography>
+              <Chip
+                label={order.status}
+                color={order.status === "completed" ? "success" : "warning"}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
             <Timeline events={order.timeline} />
-          </div>
+          </Paper>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   );
 };

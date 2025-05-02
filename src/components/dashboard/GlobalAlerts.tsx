@@ -1,37 +1,72 @@
 import { GlobalAlert } from "../../hooks/useExportDashboard";
+import {
+  Paper,
+  Typography,
+  Box,
+  Stack,
+  Alert,
+  AlertTitle
+} from "@mui/material";
 
-export const GlobalAlerts = ({ alerts }: { alerts: GlobalAlert[] }) => (
-  <div className="bg-white p-6 rounded-lg shadow">
-    <h2 className="text-lg font-semibold mb-4">Global Alerts</h2>
-    <div className="space-y-4">
-      {alerts.map((alert) => (
-        <div
-          key={alert.id}
-          className={`p-4 rounded-lg ${
-            alert.severity === "high"
-              ? "bg-red-50 border-l-4 border-red-500"
-              : alert.severity === "medium"
-                ? "bg-yellow-50 border-l-4 border-yellow-500"
-                : "bg-blue-50 border-l-4 border-blue-500"
-          }`}
-        >
-          <div className="flex justify-between items-center">
-            <span
-              className={`text-sm font-medium ${
-                alert.severity === "high"
-                  ? "text-red-800"
-                  : alert.severity === "medium"
-                    ? "text-yellow-800"
-                    : "text-blue-800"
-              }`}
-            >
-              {alert.type.toUpperCase()}
-            </span>
-            <span className="text-sm text-gray-500">{alert.date}</span>
-          </div>
-          <p className="mt-1 text-sm">{alert.message}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+export const GlobalAlerts = ({ alerts }: { alerts: GlobalAlert[] }) => {
+  // Map severity to MUI Alert severity
+  const getSeverity = (severity: string) => {
+    switch (severity) {
+      case "high":
+        return "error";
+      case "medium":
+        return "warning";
+      default:
+        return "info";
+    }
+  };
+
+  return (
+    <Paper
+      elevation={2}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: (theme) => theme.shadows[2]
+      }}
+    >
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        Global Alerts
+      </Typography>
+
+      <Stack spacing={2}>
+        {alerts.map((alert) => (
+          <Alert
+            key={alert.id}
+            severity={getSeverity(alert.severity)}
+            variant="outlined"
+            sx={{
+              borderLeftWidth: 4,
+              '& .MuiAlert-message': {
+                width: '100%'
+              },
+              transition: 'all 0.2s',
+              '&:hover': {
+                boxShadow: (theme) => theme.shadows[1]
+              }
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <AlertTitle sx={{ m: 0, fontWeight: 500 }}>
+                {alert.type.toUpperCase()}
+              </AlertTitle>
+              <Typography variant="caption" color="text.secondary">
+                {alert.date}
+              </Typography>
+            </Box>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {alert.message}
+            </Typography>
+          </Alert>
+        ))}
+      </Stack>
+    </Paper>
+  );
+};

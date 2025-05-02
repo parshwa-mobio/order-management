@@ -3,17 +3,47 @@ import { DashboardCard } from "../../components/dashboard/DashboardCard";
 import { OrderTrendChart } from "../../components/dashboard/OrderTrendChart";
 import { UserRoleChart } from "../../components/dashboard/UserRoleChart";
 import { NotificationsPanel } from "../../components/dashboard/NotificationsPanel";
+import {
+  Box,
+  Typography,
+  Container,
+  Grid,
+  CircularProgress,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Alert
+} from "@mui/material";
 
 export const AdminDashboard = () => {
   const { data, loading, error } = useAdminDashboard();
-  console.log({ data });
+
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
-  if (error) return <div className="text-red-500">{error}</div>;
+
+  if (error) return (
+    <Box sx={{ p: 3 }}>
+      <Alert severity="error">{error}</Alert>
+    </Box>
+  );
+
   if (!data) return null;
 
   // Transform orders data for the trend chart
@@ -34,117 +64,141 @@ export const AdminDashboard = () => {
   );
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    <Container maxWidth="xl">
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+          Admin Dashboard
+        </Typography>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <DashboardCard
-          title="Total Orders"
-          value={data.orders.orders.length}
-          icon="📦"
-        />
-        <DashboardCard title="Total Users" value={data.users.total} icon="👥" />
-        <DashboardCard title="Products" value={data.products.count} icon="🏷️" />
-        <DashboardCard
-          title="Pending Returns"
-          value={data.pendingApprovals.returns}
-          icon="↩️"
-        />
-      </div>
+        {/* Summary Cards */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <DashboardCard
+              title="Total Orders"
+              value={data.orders.orders.length}
+              icon="📦"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <DashboardCard
+              title="Total Users"
+              value={data.users.total}
+              icon="👥"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <DashboardCard
+              title="Products"
+              value={data.products.count}
+              icon="🏷️"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <DashboardCard
+              title="Pending Returns"
+              value={data.pendingApprovals.returns}
+              icon="↩️"
+            />
+          </Grid>
+        </Grid>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 min-h-[400px]">
-        <div className="h-full">
-          <OrderTrendChart data={orderTrendData} />
-        </div>
-        <div className="h-full">
-          <UserRoleChart data={data.users.summary} />
-        </div>
-      </div>
+        {/* Charts Section */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%', minHeight: 400 }}>
+              <OrderTrendChart data={orderTrendData} />
+            </Box>
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            <Box sx={{ height: '100%', minHeight: 400 }}>
+              <UserRoleChart data={data.users.summary} />
+            </Box>
+          </Grid>
+        </Grid>
 
-      {/* Notifications and Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <NotificationsPanel notifications={data.notifications} />
+        {/* Notifications and Alerts */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} lg={6}>
+            <NotificationsPanel notifications={data.notifications} />
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            {/* Low Stock Alerts */}
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Low Stock Alerts
+              </Typography>
+              <Stack spacing={2}>
+                {data.products.lowStock.map((item) => (
+                  <Paper
+                    key={item.name + item.stock}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      bgcolor: 'warning.light',
+                      borderRadius: 2
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Stock: {item.stock} (Threshold: {item.threshold})
+                    </Typography>
+                  </Paper>
+                ))}
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
 
-        {/* Low Stock Alerts */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Low Stock Alerts</h2>
-          <div className="space-y-4">
-            {data.products.lowStock.map((item, index) => (
-              <div key={index} className="p-4 bg-yellow-50 rounded-lg">
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-600">
-                  Stock: {item.stock} (Threshold: {item.threshold})
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+        {/* Recent Orders Table */}
+        <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Recent Orders
+          </Typography>
+          <TableContainer>
+            <Table sx={{ minWidth: 650 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Order Number</TableCell>
+                  <TableCell>Customer</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Date</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.orders.recent.orders.map((order) => {
+                  // Calculate total amount from orderItems
+                  const totalAmount = order.orderItems.reduce(
+                    (sum, item) => sum + item.totalPrice,
+                    0,
+                  );
 
-      {/* Recent Orders Table */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Order Number
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.orders.recent.orders.map((order) => {
-                // Calculate total amount from orderItems
-                const totalAmount = order.orderItems.reduce(
-                  (sum, item) => sum + item.totalPrice,
-                  0,
-                );
-
-                return (
-                  <tr key={order._id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{order._id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {order.user?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      ${totalAmount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          order.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+                  return (
+                    <TableRow key={order._id}>
+                      <TableCell>{order._id}</TableCell>
+                      <TableCell>{order.user?.name || "N/A"}</TableCell>
+                      <TableCell>${totalAmount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={order.status}
+                          color={order.status === "completed" ? "success" : "warning"}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Box>
+    </Container>
   );
 };

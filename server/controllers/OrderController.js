@@ -26,11 +26,9 @@ export default class OrderController extends BaseController {
         });
       }
 
-      // Create new order
       const newOrder = new Order({
         ...req.body,
         createdBy: req.user.id,
-        status: "pending",
         createdAt: new Date(),
       });
 
@@ -59,14 +57,14 @@ export default class OrderController extends BaseController {
       if (order.status !== "draft") {
         return responseHandler.forbidden(
           res,
-          "Only draft orders can be edited",
+          "Only draft orders can be edited"
         );
       }
 
       const updatedOrder = await Order.findByIdAndUpdate(
         id,
         { ...req.body, updatedAt: new Date() },
-        { new: true },
+        { new: true }
       ).populate("items.product");
 
       return responseHandler.success(res, updatedOrder);
@@ -112,7 +110,7 @@ export default class OrderController extends BaseController {
         pagination: paginationHelper.getPaginationData(
           total,
           pagination.page,
-          pagination.limit,
+          pagination.limit
         ),
       });
     } catch (error) {
@@ -139,7 +137,7 @@ export default class OrderController extends BaseController {
             },
           },
         },
-        { new: true },
+        { new: true }
       ).populate("items.product");
 
       if (!order) {
@@ -156,7 +154,10 @@ export default class OrderController extends BaseController {
   async getOrderById(req, res) {
     try {
       const order = await Order.findById(req.params.id)
-        .populate("user", "name email")
+        .populate({
+          path: "user",
+          strictPopulate: false,
+        })
         .populate("orderItems.product", "name sku price")
         .lean();
 
@@ -183,14 +184,14 @@ export default class OrderController extends BaseController {
       if (order.status !== "draft") {
         return responseHandler.forbidden(
           res,
-          "Only draft orders can be edited",
+          "Only draft orders can be edited"
         );
       }
 
       const updatedOrder = await Order.findByIdAndUpdate(
         id,
         { ...req.body, updatedAt: new Date() },
-        { new: true },
+        { new: true }
       ).populate("items.product");
 
       return responseHandler.success(res, updatedOrder);
@@ -212,7 +213,7 @@ export default class OrderController extends BaseController {
       if (order.status !== "draft") {
         return responseHandler.forbidden(
           res,
-          "Only draft orders can be cancelled",
+          "Only draft orders can be cancelled"
         );
       }
 
@@ -237,7 +238,7 @@ export default class OrderController extends BaseController {
       const { id } = req.params;
       const sourceOrder = await Order.findById(id).populate(
         "orderItems.product",
-        "name sku price",
+        "name sku price"
       );
 
       if (!sourceOrder) {
@@ -274,7 +275,7 @@ export default class OrderController extends BaseController {
           ...order,
           user: req.user.id,
           status: "pending",
-        })),
+        }))
       );
 
       return responseHandler.success(res, createdOrders, 201);

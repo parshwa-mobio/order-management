@@ -1,3 +1,11 @@
+import {
+  Paper,
+  Typography,
+  Box,
+  Alert,
+  Stack
+} from "@mui/material";
+
 interface Notification {
   id: string;
   message: string;
@@ -12,22 +20,49 @@ interface NotificationsPanelProps {
 export const NotificationsPanel = ({
   notifications,
 }: NotificationsPanelProps) => {
+  // Map notification type to MUI Alert severity
+  const getSeverity = (type: string) => {
+    switch (type) {
+      case "error":
+        return "error";
+      case "warning":
+        return "warning";
+      case "success":
+        return "success";
+      default:
+        return "info";
+    }
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">System Notifications</h2>
-      <div className="space-y-4">
+    <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        System Notifications
+      </Typography>
+
+      <Stack spacing={2}>
         {notifications.map((notification) => (
-          <div
+          <Alert
             key={notification.id}
-            className={`p-4 rounded-lg ${
-              notification.type === "error" ? "bg-red-50" : "bg-blue-50"
-            }`}
+            severity={getSeverity(notification.type)}
+            variant="outlined"
+            sx={{
+              '& .MuiAlert-message': {
+                width: '100%'
+              }
+            }}
           >
-            <p className="text-sm">{notification.message}</p>
-            <span className="text-xs text-gray-500">{notification.date}</span>
-          </div>
+            <Box>
+              <Typography variant="body2">
+                {notification.message}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {notification.date}
+              </Typography>
+            </Box>
+          </Alert>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   );
 };

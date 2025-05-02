@@ -4,6 +4,13 @@ import { InternationalShipments } from "../../components/dashboard/International
 import { OrderStatusTimeline } from "../../components/dashboard/OrderStatusTimeline";
 import { InternationalReturns } from "../../components/dashboard/InternationalReturns";
 import { ExportDocuments } from "../../components/dashboard/ExportDocuments";
+import {
+  Box,
+  Typography,
+  Container,
+  CircularProgress,
+  Stack
+} from "@mui/material";
 
 export const ExportDashboard = () => {
   const { loading, shipments, orderStatuses, returns, documents, alerts } =
@@ -11,20 +18,34 @@ export const ExportDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Export Dashboard</h1>
-      <GlobalAlerts alerts={alerts} />
-      <InternationalShipments shipments={shipments} />
-      <OrderStatusTimeline orderStatuses={orderStatuses} />
-      <InternationalReturns returns={returns} />
-      <ExportDocuments documents={documents} />
-    </div>
+    <Container maxWidth="xl">
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+          Export Dashboard
+        </Typography>
+
+        <Stack spacing={4}>
+          <GlobalAlerts alerts={alerts} />
+          <InternationalShipments shipments={shipments} />
+          <OrderStatusTimeline orderStatuses={orderStatuses} />
+          <InternationalReturns returns={returns} />
+          <ExportDocuments documents={documents} />
+        </Stack>
+      </Box>
+    </Container>
   );
 };

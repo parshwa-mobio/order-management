@@ -1,11 +1,17 @@
 import React from "react";
-import { ProductFormInput } from "./ProductFormInput";
+import { useState } from "react";
+import { Grid, Paper, SelectChangeEvent } from "@mui/material";
+import { FormGrid } from "../formCommon/FormGrid";
+import { FormTextField } from "../formCommon/FormTextField";
+import { FormSelect } from "../formCommon/FormSelect";
+import { FormBox } from "../formCommon/FormBox";
+import { Button } from "@mui/material";
 
 interface ProductFormData {
   sku: string;
   name: string;
   category: string;
-  price: number;
+  basePrice: number;
   moq: number;
   stock: number;
   netWeight: number;
@@ -16,23 +22,41 @@ interface ProductFormData {
 }
 
 interface ProductFormProps {
-  formData: ProductFormData;
-  onSubmit: (e: React.FormEvent) => void;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => void;
-  onCancel: () => void;
-  submitLabel: string;
+  initialData: ProductFormData;
+  onSubmit: (data: ProductFormData) => void;
+  submitButtonText: string;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({
-  formData,
-  onSubmit,
-  onChange,
-  onCancel,
-  submitLabel,
-}) => {
+export const ProductForm = ({ initialData, onSubmit, submitButtonText }: ProductFormProps) => {
+  const [formData, setFormData] = useState(initialData);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name.includes("basePrice") ||
+        name.includes("Weight") ||
+        name.includes("volume") ||
+        name.includes("Capacity")
+          ? value === ""
+            ? undefined
+            : parseFloat(value)
+          : name === "moq" || name === "stock"
+            ? parseInt(value, 10)
+            : value,
+    }));
+  };
+
   const categoryOptions = [
+    { value: "", label: "Select Category" },
     { value: "distributor", label: "Distributor" },
     { value: "dealer", label: "Dealer" },
     { value: "sales", label: "Sales" },
@@ -40,126 +64,135 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   ];
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="max-w-2xl bg-white p-6 rounded-lg shadow"
-    >
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <ProductFormInput
-          label="SKU"
-          name="sku"
-          type="text"
-          value={formData.sku}
-          onChange={onChange}
-          required
-        />
-        <ProductFormInput
-          label="Name"
-          name="name"
-          type="text"
-          value={formData.name}
-          onChange={onChange}
-          required
-        />
-        <ProductFormInput
-          label="Category"
-          name="category"
-          type="select"
-          value={formData.category}
-          onChange={onChange}
-          required
-          options={categoryOptions}
-        />
-        <ProductFormInput
-          label="Price"
-          name="price"
-          type="number"
-          value={formData.price}
-          onChange={onChange}
-          required
-          min={0}
-          step="0.01"
-        />
-        <ProductFormInput
-          label="MOQ"
-          name="moq"
-          type="number"
-          value={formData.moq}
-          onChange={onChange}
-          required
-          min={1}
-        />
-        <ProductFormInput
-          label="Stock"
-          name="stock"
-          type="number"
-          value={formData.stock}
-          onChange={onChange}
-          required
-          min={0}
-        />
-        <ProductFormInput
-          label="Net Weight"
-          name="netWeight"
-          type="number"
-          value={formData.netWeight}
-          onChange={onChange}
-          required
-          min={0}
-          step="0.01"
-        />
-        <ProductFormInput
-          label="Gross Weight"
-          name="grossWeight"
-          type="number"
-          value={formData.grossWeight}
-          onChange={onChange}
-          required
-          min={0}
-          step="0.01"
-        />
-        <ProductFormInput
-          label="Volume"
-          name="volume"
-          type="number"
-          value={formData.volume}
-          onChange={onChange}
-          required
-          min={0}
-          step="0.01"
-        />
-        <ProductFormInput
-          label="20ft Container Capacity"
-          name="container20ftCapacity"
-          type="number"
-          value={formData.container20ftCapacity || ""}
-          onChange={onChange}
-          min={0}
-        />
-        <ProductFormInput
-          label="40ft Container Capacity"
-          name="container40ftCapacity"
-          type="number"
-          value={formData.container40ftCapacity || ""}
-          onChange={onChange}
-          min={0}
-        />
-      </div>
-      <div className="mt-6 flex justify-end space-x-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-        >
-          {submitLabel}
-        </button>
-      </div>
-    </form>
+    <Paper>
+      <FormBox component="form" onSubmit={handleSubmit} p={3}>
+        <Grid container spacing={3}>
+        <FormGrid item xs={12} md={6}>
+            <FormTextField
+              label="SKU"
+              name="sku"
+              value={formData.sku}
+              onChange={handleChange}
+              required
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormSelect
+              name="category"
+              label="Category"
+              value={formData.category}
+              onChange={handleChange}
+              options={categoryOptions}
+              required
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="Price"
+              name="basePrice"
+              value={formData.basePrice}
+              onChange={handleChange}
+              required
+              min="0"
+              step="0.01"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="MOQ"
+              name="moq"
+              value={formData.moq}
+              onChange={handleChange}
+              required
+              min="1"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="Stock"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              required
+              min="0"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="Net Weight"
+              name="netWeight"
+              value={formData.netWeight}
+              onChange={handleChange}
+              required
+              min="0"
+              step="0.01"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="Gross Weight"
+              name="grossWeight"
+              value={formData.grossWeight}
+              onChange={handleChange}
+              required
+              min="0"
+              step="0.01"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="Volume"
+              name="volume"
+              value={formData.volume}
+              onChange={handleChange}
+              required
+              min="0"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="20ft Container Capacity"
+              name="container20ftCapacity"
+              value={formData.container20ftCapacity}
+              onChange={handleChange}
+              required
+              min="0"
+            />
+          </FormGrid>
+          <FormGrid item xs={12} md={6}>
+            <FormTextField
+              type="number"
+              label="40ft Container Capacity"
+              name="container40ftCapacity"
+              value={formData.container40ftCapacity}
+              onChange={handleChange}
+              required
+              min="0"
+            />
+          </FormGrid>
+        </Grid>
+        <FormBox mt={3}>
+          <Button type="submit" variant="contained" color="primary">
+            {submitButtonText}
+          </Button>
+        </FormBox>
+      </FormBox>
+    </Paper>
   );
 };

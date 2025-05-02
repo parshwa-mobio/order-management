@@ -17,6 +17,22 @@ import { AdminDashboard } from "./AdminDashboard";
 import { SalesDashboard } from "./SalesDashboard";
 import { DistributorDashboard } from "./DistributorDashboard";
 import { ExportDashboard } from "./ExportDashboard";
+import { FormGrid } from "../../components/formCommon/FormGrid";
+import {
+  Box,
+  Typography,
+  Container,
+  Grid,
+  CircularProgress,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Alert
+} from "@mui/material";
 
 interface OrderSummary {
   totalOrders: number;
@@ -77,7 +93,6 @@ const DefaultDashboard = () => {
         setClaimsSummary(claimsData);
         setTopProducts(productsData);
       } catch (error) {
-        console.log(error);
         showToast("Failed to fetch dashboard data", "error");
       } finally {
         setLoading(false);
@@ -89,131 +104,174 @@ const DefaultDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
-      </div>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <Container maxWidth="xl">
+      <Box sx={{ py: 3 }}>
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
+          Dashboard
+        </Typography>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-600">Total Orders</h3>
-          <p className="text-3xl font-bold">{orderSummary.totalOrders}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-600">
-            Pending Orders
-          </h3>
-          <p className="text-3xl font-bold">{orderSummary.pendingOrders}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-600">Revenue</h3>
-          <p className="text-3xl font-bold">
-            ${orderSummary.revenue.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-600">Total Claims</h3>
-          <p className="text-3xl font-bold">{claimsSummary.total}</p>
-        </div>
-      </div>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <FormGrid xs={12} sm={6} md={3}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Total Orders
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                {orderSummary.totalOrders}
+              </Typography>
+            </Paper>
+          </FormGrid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Orders Status</h2>
-          <PieChart width={400} height={300}>
-            <Pie
-              data={[
-                { name: "Completed", value: orderSummary.completedOrders },
-                { name: "Pending", value: orderSummary.pendingOrders },
-              ]}
-              cx="50%"
-              cy="50%"
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-              label
-            >
-              {COLORS.map((color, index) => (
-                <Cell key={`cell-${index}`} fill={color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </div>
+          <FormGrid xs={12} sm={6} md={3}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Pending Orders
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                {orderSummary.pendingOrders}
+              </Typography>
+            </Paper>
+          </FormGrid>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Claims Status</h2>
-          <BarChart
-            width={400}
-            height={300}
-            data={[
-              { name: "Pending", value: claimsSummary.pending },
-              { name: "Approved", value: claimsSummary.approved },
-              { name: "Rejected", value: claimsSummary.rejected },
-            ]}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#8884d8" />
-          </BarChart>
-        </div>
+          <FormGrid xs={12} sm={6} md={3}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Revenue
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                ${orderSummary.revenue.toLocaleString()}
+              </Typography>
+            </Paper>
+          </FormGrid>
 
-        <div className="bg-white p-6 rounded-lg shadow lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Top Products</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Quantity Sold
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Revenue
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {topProducts.map((product, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.quantity}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      ${product.revenue.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+          <FormGrid xs={12} sm={6} md={3}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Total Claims
+              </Typography>
+              <Typography variant="h4" sx={{ mt: 1, fontWeight: 700 }}>
+                {claimsSummary.total}
+              </Typography>
+            </Paper>
+          </FormGrid>
+        </Grid>
+
+        <Grid container spacing={3}>
+          <FormGrid xs={12} lg={6}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Orders Status
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <PieChart width={400} height={300}>
+                  <Pie
+                    data={[
+                      { name: "Completed", value: orderSummary.completedOrders },
+                      { name: "Pending", value: orderSummary.pendingOrders },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label
+                  >
+                    {COLORS.map((color, index) => (
+                      <Cell key={`cell-${color}-${index}`} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </Box>
+            </Paper>
+          </FormGrid>
+
+          <FormGrid xs={12} lg={6}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Claims Status
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <BarChart
+                  width={400}
+                  height={300}
+                  data={[
+                    { name: "Pending", value: claimsSummary.pending },
+                    { name: "Approved", value: claimsSummary.approved },
+                    { name: "Rejected", value: claimsSummary.rejected },
+                  ]}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#8884d8" />
+                </BarChart>
+              </Box>
+            </Paper>
+          </FormGrid>
+
+          <FormGrid xs={12}>
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Top Products
+              </Typography>
+              <TableContainer>
+                <Table sx={{ minWidth: 650 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Product Name</TableCell>
+                      <TableCell>Quantity Sold</TableCell>
+                      <TableCell>Revenue</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {topProducts.map((product) => (
+                      <TableRow key={`product-${product.name}-${product.quantity}`}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.quantity}</TableCell>
+                        <TableCell>${product.revenue.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </FormGrid>
+        </Grid>
+      </Box>
+    </Container>
   );
 };
 
 const Dashboard = () => {
-  console.log("Dashboard rendered");
   const { user } = useAuth();
 
-  if (!user) return <div>Please log in to access the dashboard</div>;
+  if (!user) return (
+    <Box sx={{ p: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Alert severity="info" sx={{ width: '100%', maxWidth: 500 }}>
+        Please log in to access the dashboard
+      </Alert>
+    </Box>
+  );
 
   switch (user.role) {
     case "admin":
