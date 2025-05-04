@@ -35,24 +35,41 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
     onSubmit(formData);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  const handleTextFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]:
-        name.includes("basePrice") ||
-        name.includes("Weight") ||
-        name.includes("volume") ||
-        name.includes("Capacity")
-          ? value === ""
-            ? undefined
-            : parseFloat(value)
-          : name === "moq" || name === "stock"
-            ? parseInt(value, 10)
-            : value,
+      [name]: parseFieldValue(name, value)
     }));
+  };
+
+  const handleSelectChange = (e: SelectChangeEvent) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const parseFieldValue = (name: string, value: string) => {
+    if (value === "") {
+      return name.includes("Capacity") ? undefined : value;
+    }
+
+    if (name.includes("basePrice") || 
+        name.includes("Weight") || 
+        name.includes("volume") || 
+        name.includes("Capacity")) {
+      return parseFloat(value);
+    }
+
+    if (name === "moq" || name === "stock") {
+      return parseInt(value, 10);
+    }
+
+    return value;
   };
 
   const categoryOptions = [
@@ -72,7 +89,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="SKU"
               name="sku"
               value={formData.sku}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
             />
           </FormGrid>
@@ -81,16 +98,17 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Name"
               name="name"
               value={formData.name}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
             />
           </FormGrid>
           <FormGrid item xs={12} md={6}>
             <FormSelect
+              id="category"
               name="category"
               label="Category"
               value={formData.category}
-              onChange={handleChange}
+              onChange={handleSelectChange}
               options={categoryOptions}
               required
             />
@@ -101,7 +119,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Price"
               name="basePrice"
               value={formData.basePrice}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
               step="0.01"
@@ -113,7 +131,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="MOQ"
               name="moq"
               value={formData.moq}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="1"
             />
@@ -124,7 +142,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Stock"
               name="stock"
               value={formData.stock}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
             />
@@ -135,7 +153,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Net Weight"
               name="netWeight"
               value={formData.netWeight}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
               step="0.01"
@@ -147,7 +165,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Gross Weight"
               name="grossWeight"
               value={formData.grossWeight}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
               step="0.01"
@@ -159,7 +177,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="Volume"
               name="volume"
               value={formData.volume}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
             />
@@ -170,7 +188,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="20ft Container Capacity"
               name="container20ftCapacity"
               value={formData.container20ftCapacity}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
             />
@@ -181,7 +199,7 @@ export const ProductForm = ({ initialData, onSubmit, submitButtonText }: Product
               label="40ft Container Capacity"
               name="container40ftCapacity"
               value={formData.container40ftCapacity}
-              onChange={handleChange}
+              onChange={handleTextFieldChange}
               required
               min="0"
             />

@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, FormControlLabelProps } from "@mui/material";
+import { Checkbox, FormControlLabel, FormControlLabelProps, FormHelperText, Box } from "@mui/material";
 import React, { memo } from "react";
 
 interface FormCheckboxProps extends Omit<FormControlLabelProps, 'control'> {
@@ -7,6 +7,7 @@ interface FormCheckboxProps extends Omit<FormControlLabelProps, 'control'> {
   onChange: (event: React.SyntheticEvent, checked: boolean) => void;
   label: string;
   disabled?: boolean;
+  helperText?: string;
 }
 
 export const FormCheckbox: React.FC<FormCheckboxProps> = memo(({
@@ -15,20 +16,26 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = memo(({
   onChange,
   label,
   disabled = false,
+  helperText,
   ...props
 }) => (
-  <FormControlLabel
-    control={
-      <Checkbox
-        name={name}
-        checked={value}
-        onChange={onChange}
-        disabled={disabled}
-      />
-    }
-    label={label}
-    {...props}
-  />
+  <Box>
+    <FormControlLabel
+      control={
+        <Checkbox
+          name={name}
+          checked={value}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      }
+      label={label}
+      {...props}
+    />
+    {helperText && (
+      <FormHelperText sx={{ ml: 4 }}>{helperText}</FormHelperText>
+    )}
+  </Box>
 ));
 
 FormCheckbox.displayName = 'FormCheckbox';

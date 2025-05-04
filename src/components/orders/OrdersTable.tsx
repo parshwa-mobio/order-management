@@ -1,18 +1,7 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  IconButton,
-  Box,
-  Typography,
-  Link,
-} from "@mui/material";
+import { Box, Typography, Chip, IconButton, Link } from "@mui/material";
 import { Visibility as VisibilityIcon } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
+import { DataTable } from "../common/DataTable";
 
 interface OrderItem {
   product: any; // Accepts object as per backend response
@@ -60,62 +49,77 @@ export const OrdersTable = ({ orders, getStatusColor }: OrderTableProps) => {
     );
   }
 
+  const columns = [
+    {
+      field: "orderNumber",
+      headerName: "Order ID",
+      flex: 1,
+      renderCell: (row: Order) => (
+        <Link
+          component={RouterLink}
+          to={`/orders/${row._id}`}
+          color="primary"
+          underline="hover"
+          sx={{ fontWeight: 500 }}
+        >
+          {row.orderNumber ?? row._id}
+        </Link>
+      ),
+    },
+    {
+      field: "items",
+      headerName: "Items",
+      flex: 1,
+      renderCell: (row: Order) => `${Array.isArray(row.orderItems) ? row.orderItems.length : 0} items`,
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      renderCell: (row: Order) => (
+        <Chip
+          label={row.status}
+          color={getStatusColor(row.status) as any}
+          size="small"
+          sx={{ textTransform: "capitalize" }}
+        />
+      ),
+    },
+    {
+      field: "createdAt",
+      headerName: "Date",
+      flex: 1,
+      renderCell: (row: Order) => new Date(row.createdAt).toLocaleDateString(),
+    },
+    {
+      field: "totalAmount",
+      headerName: "Total",
+      flex: 1,
+      renderCell: (row: Order) => `$${row.totalAmount?.toFixed(2) ?? "0.00"}`,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1,
+      renderCell: (row: Order) => (
+        <IconButton
+          component={RouterLink}
+          to={`/orders/${row._id}`}
+          size="small"
+        >
+          <VisibilityIcon fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
   return (
-    <TableContainer>
-      <Table sx={{ minWidth: 650 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Order ID</TableCell>
-            <TableCell>Items</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Total</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order._id} hover>
-              <TableCell>
-                <Link
-                  component={RouterLink}
-                  to={`/orders/${order._id}`}
-                  color="primary"
-                  underline="hover"
-                  sx={{ fontWeight: 500 }}
-                >
-                  {order.orderNumber ?? order._id}
-                </Link>
-              </TableCell>
-              <TableCell>
-                {Array.isArray(order.orderItems) ? order.orderItems.length : 0}{" "}
-                items
-              </TableCell>
-              <TableCell>
-                <Chip
-                  label={order.status}
-                  color={getStatusColor(order.status) as any}
-                  size="small"
-                  sx={{ textTransform: "capitalize" }}
-                />
-              </TableCell>
-              <TableCell>
-                {new Date(order.createdAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell>${order.totalAmount?.toFixed(2) ?? "0.00"}</TableCell>
-              <TableCell>
-                <IconButton
-                  component={RouterLink}
-                  to={`/orders/${order._id}`}
-                  size="small"
-                >
-                  <VisibilityIcon fontSize="small" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box>
+      <DataTable
+        columns={columns}
+        rows={orders}
+        emptyMessage="No orders found"
+      />
+    </Box>
   );
 };

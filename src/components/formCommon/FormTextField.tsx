@@ -15,6 +15,7 @@ interface FormTextFieldProps extends Omit<TextFieldProps, 'onChange'> {
   size?: "small" | "medium";
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  readOnly?: boolean;
 }
 
 export const FormTextField: React.FC<FormTextFieldProps> = ({
@@ -30,6 +31,7 @@ export const FormTextField: React.FC<FormTextFieldProps> = ({
   placeholder,
   startAdornment,
   endAdornment,
+  readOnly,
   ...props
 }) => {
   return (
@@ -45,9 +47,10 @@ export const FormTextField: React.FC<FormTextFieldProps> = ({
       placeholder={placeholder}
       slotProps={{
         input: {
+          readOnly,
           ...(type === 'number' && { min, step }),
           ...props.slotProps?.input
-        } as any
+        }
       }}
       {...props}
     />

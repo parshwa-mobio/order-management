@@ -1,23 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Button,
-  Container,
-  type Theme
-} from "@mui/material";
+import { Box, Typography, Button, Container } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { useOrders } from "../../hooks/useOrders";
 import { OrdersTable } from "../../components/orders/OrdersTable";
-import { OrdersFilter } from "../../components/orders/OrdersFilter";
-import { FormBox } from "../../components/formCommon/FormBox";
-
-// Type definitions for better type safety
-interface DateRange {
-  from: string;
-  to: string;
-}
+import { DynamicFilter } from "../../components/common/DynamicFilter";
 
 type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -25,55 +12,100 @@ type StatusColorMap = {
   [K in OrderStatus]: string;
 };
 
+const orderFilters = [
+  {
+    field: "searchTerm",
+    label: "Search Orders",
+    type: "text" as const
+  },
+  {
+    field: "status",
+    label: "Status",
+    type: "select" as const,
+    options: [
+      { value: "all", label: "All Statuses" },
+      { value: "pending", label: "Pending" },
+      { value: "confirmed", label: "Confirmed" },
+      { value: "processing", label: "Processing" },
+      { value: "shipped", label: "Shipped" },
+      { value: "delivered", label: "Delivered" },
+      { value: "cancelled", label: "Cancelled" }
+    ]
+  },
+  {
+    field: "from",
+    label: "From Date",
+    type: "date" as const
+  },
+  {
+    field: "to",
+    label: "To Date",
+    type: "date" as const
+  }
+];
+
+const statusColors: StatusColorMap = {
+  pending: "warning",
+  confirmed: "info",
+  processing: "secondary",
+  shipped: "primary",
+  delivered: "success",
+  cancelled: "error"
+} as const;
+
+const styles = {
+  container: {
+    py: 4
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    mb: 3
+  },
+  title: {
+    fontWeight: 600,
+    color: "primary.main"
+  },
+  headerButton: {
+    bgcolor: "primary.main",
+    "&:hover": {
+      bgcolor: "primary.dark",
+    }
+  }
+} as const;
+
 const Orders = () => {
-  // State management with proper typing
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>("all");
-  const [dateRange, setDateRange] = useState<DateRange>({
+  const [filterValues, setFilterValues] = useState({
+    searchTerm: "",
+    status: "all",
     from: "",
-    to: "",
+    to: ""
   });
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
 
-  // Custom hook for orders with proper typing
-  const { orders } = useOrders({ searchTerm, filterStatus, dateRange });
+  const { orders } = useOrders({
+    searchTerm: filterValues.searchTerm,
+    filterStatus: filterValues.status,
+    dateRange: { from: filterValues.from, to: filterValues.to }
+  });
 
-  // Status color mapping with type safety
-  const statusColors: StatusColorMap = {
-    pending: "warning",
-    confirmed: "info",
-    processing: "secondary",
-    shipped: "primary",
-    delivered: "success",
-    cancelled: "error"
-  };
+  const handleFilterChange = useCallback((field: string, value: string) => {
+    setFilterValues(prev => ({ ...prev, [field]: value }));
+  }, []);
 
-
-  // Styles object for better organization
-  const styles = {
-    container: {
-      py: 4
-    },
-    header: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      mb: 3
-    },
-    title: {
-      fontWeight: 600
-    },
-    newOrderButton: (theme: Theme) => ({
-      '&:hover': {
-        backgroundColor: theme.palette.primary.dark
-      }
-    })
-  };
+  const getStatusColor = useCallback((status: string) => 
+    statusColors[status as OrderStatus] || "default"
+  , []);
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={styles.container}>
-        <FormBox sx={styles.header}>
+    <Container maxWidth="xl">
+      <Box p={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
           <Typography variant="h4" component="h1" sx={styles.title}>
             Orders
           </Typography>
@@ -82,26 +114,21 @@ const Orders = () => {
             component={RouterLink}
             to="/orders/new"
             startIcon={<AddIcon />}
-            sx={styles.newOrderButton}
+            sx={styles.headerButton}
           >
             New Order
           </Button>
-        </FormBox>
+        </Box>
 
-        <OrdersFilter
-          searchTerm={searchTerm}
-          filterStatus={filterStatus}
-          dateRange={dateRange}
-          onSearchChange={setSearchTerm}
-          onStatusChange={(value: string) => setFilterStatus(value as OrderStatus)}
-          onDateRangeChange={setDateRange}
-          onAdvancedFilter={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          showAdvancedFilters={showAdvancedFilters}
+        <DynamicFilter
+          filters={orderFilters}
+          values={filterValues}
+          onChange={handleFilterChange}
         />
 
         <OrdersTable
           orders={orders}
-          getStatusColor={(status: string) => statusColors[status as OrderStatus] || "default"}
+          getStatusColor={getStatusColor}
         />
       </Box>
     </Container>

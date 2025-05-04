@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useCategories } from "../../hooks/useCategories";
-import { PageContainer } from "../../components/common/PageContainer";
-import { FormTable } from "../../components/common/FormTable";
-import { Button, Box } from "@mui/material";
+import { Button, Typography, Box, Container } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
+import { DataTable } from "../../components/common/DataTable";
+import { DynamicFilter } from "../../components/common/DynamicFilter";
 import AddCategoryForm from "../../components/categories/AddCategoryForm";
 
 const Categories = () => {
@@ -14,24 +14,14 @@ const Categories = () => {
     createCategory,
     deleteCategory,
   } = useCategories();
-  const [creating, setCreating] = useState(false);
+
+  const [filterValues, setFilterValues] = useState({
+    name: ""
+  });
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
-
-  const handleCreate = useCallback(async (category: {
-    name: string;
-    description: string;
-    imageUrl?: string;
-  }) => {
-    setCreating(true);
-    try {
-      await createCategory(category);
-    } finally {
-      setCreating(false);
-    }
-  }, [createCategory]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this category?")) {
@@ -40,12 +30,17 @@ const Categories = () => {
     await deleteCategory(id);
   }, [deleteCategory]);
 
+  const handleFilterChange = useCallback((field: string, value: string) => {
+    setFilterValues(prev => ({ ...prev, [field]: value }));
+  }, []);
+
   const columns = [
-    { field: "name", headerName: "Name" },
-    { field: "description", headerName: "Description" },
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "description", headerName: "Description", flex: 2 },
     {
       field: "actions",
       headerName: "Actions",
+      flex: 1,
       renderCell: (row: any) => (
         <Button
           color="error"
@@ -58,33 +53,81 @@ const Categories = () => {
     },
   ];
 
-  const toggleCreating = useCallback(() => {
-    setCreating(prev => !prev);
-  }, []);
+  const filters = [
+    {
+      field: "name",
+      label: "Search Category",
+      type: "text" as const,
+    }
+  ];
+
+  const filteredCategories = categories.filter(category => 
+    filterValues.name ? 
+      category.name.toLowerCase().includes(filterValues.name.toLowerCase()) : 
+      true
+  );
+
+  const styles = {
+    headerButton: {
+      bgcolor: "primary.main",
+      "&:hover": {
+        bgcolor: "primary.dark",
+      }
+    }
+  } as const;
+
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   return (
-    <PageContainer
-      title="Categories"
-      actions={
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={toggleCreating}
+    <Container maxWidth="xl">
+      <Box p={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
         >
-          Add Category
-        </Button>
-      }
-    >
-      <AddCategoryForm onCreate={handleCreate} creating={creating} />
-      <Box sx={{ mt: 3 }}>
-        <FormTable
+          <Typography variant="h4" component="h1" color="primary.main">
+            Categories
+          </Typography>
+          {!isAddingCategory && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setIsAddingCategory(true)}
+              sx={styles.headerButton}
+            >
+              Add Category
+            </Button>
+          )}
+        </Box>
+
+        {isAddingCategory && (
+          <Box mb={3}>
+            <AddCategoryForm 
+              onCreate={async (data) => {
+                await createCategory(data);
+                setIsAddingCategory(false);
+              }} 
+              creating={false}
+              onCancel={() => setIsAddingCategory(false)}
+            />
+          </Box>
+        )}
+        
+        <DynamicFilter
+          filters={filters}
+          values={filterValues}
+          onChange={handleFilterChange}
+        />
+        <DataTable
           columns={columns}
-          rows={categories}
+          rows={filteredCategories}
           loading={loading}
           emptyMessage="No categories found"
         />
       </Box>
-    </PageContainer>
+    </Container>
   );
 };
 
