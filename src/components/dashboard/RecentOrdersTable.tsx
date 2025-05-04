@@ -8,7 +8,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
+  Chip,
 } from "@mui/material";
 
 interface RecentOrdersTableProps {
@@ -43,11 +43,11 @@ export const RecentOrdersTable = ({ recentOrders }: RecentOrdersTableProps) => {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Order ID</TableCell>
-              <TableCell>Distributor</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Date</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.light', color: 'primary.contrastText' }}>Order ID</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.light', color: 'primary.contrastText' }}>Distributor</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.light', color: 'primary.contrastText' }}>Amount</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.light', color: 'primary.contrastText' }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.light', color: 'primary.contrastText' }}>Date</TableCell>
             </TableRow>
           </TableHead>
           <TableBody sx={{ '& tr:hover': { bgcolor: 'action.hover' } }}>

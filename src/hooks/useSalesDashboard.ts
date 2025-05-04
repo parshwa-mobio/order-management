@@ -57,6 +57,20 @@ export interface RecentOrder {
   status: string;
 }
 
+interface OrderResponse {
+  id: string;
+  user: { name: string };
+  orderItems: Array<{ totalPrice: number }>;
+  status: string;
+  createdAt: string;
+}
+
+interface OrdersResponse {
+  recent: {
+    orders: OrderResponse[];
+  };
+}
+
 export const useSalesDashboard = (selectedDistributorId: string = "") => {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -110,7 +124,13 @@ export const useSalesDashboard = (selectedDistributorId: string = "") => {
         setDistributorPerformance(distributor);
         setLowStockAlerts(stock);
         setReturnRequests(returns);
-        setRecentOrders(orders.recent);
+        setRecentOrders((orders as OrdersResponse).recent.orders.map((order: OrderResponse) => ({
+          id: order.id,
+          distributorName: order.user.name,
+          amount: order.orderItems.reduce((sum: number, item: { totalPrice: number }) => sum + item.totalPrice, 0),
+          date: order.createdAt,
+          status: order.status
+        })));
       } catch (error) {
         showToast("Failed to fetch dashboard data", "error");
       } finally {

@@ -1,27 +1,19 @@
+import { memo } from "react";
 import { useAdminDashboard } from "../../hooks/useAdminDashboard";
 import { FormCard } from "../../components/formCommon/FormCard";
-import { FormChart } from "../../components/formCommon/FormChart";
 import { FormAlert } from "../../components/formCommon/FormAlert";
 import { FormTable } from "../../components/formCommon/FormTable";
 import { FormLoading } from "../../components/formCommon/FormLoading";
 import { FormGrid } from "../../components/formCommon/FormGrid";
 import { FormList } from "../../components/formCommon/FormList";
+import { OrderTrendChart } from "../../components/dashboard/OrderTrendChart";
+import { UserRoleChart } from "../../components/dashboard/UserRoleChart";
 import { Box, Typography, Container } from "@mui/material";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  BarChart,
-  Bar
-} from "recharts";
+import { useUsername } from "../../hooks/useUsername";
 
-export const AdminDashboard = () => {
+export const AdminDashboard = memo(() => {
   const { data, loading, error } = useAdminDashboard();
-
+console.log({data})
   if (loading) return <FormLoading fullScreen />;
 
   if (error) return (
@@ -91,28 +83,10 @@ export const AdminDashboard = () => {
         {/* Charts Section */}
         <FormGrid container spacing={3} sx={{ mb: 4 }}>
           <FormGrid xs={12} lg={6}>
-            <FormChart title="Order Trends">
-              <LineChart data={orderTrendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="count" stroke="#8884d8" />
-              </LineChart>
-            </FormChart>
+            <OrderTrendChart data={orderTrendData} />
           </FormGrid>
           <FormGrid xs={12} lg={6}>
-            <FormChart title="Users by Role">
-              <BarChart data={data.users.summary}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="role" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#82ca9d" />
-              </BarChart>
-            </FormChart>
+            <UserRoleChart data={data.users.summary} />
           </FormGrid>
         </FormGrid>
 
@@ -143,8 +117,15 @@ export const AdminDashboard = () => {
         <FormTable
           title="Recent Orders"
           columns={[
-            { field: 'id', headerName: 'Order Number' },
-            { field: 'user.name', headerName: 'Customer' },
+            { field: 'orderNumber', headerName: 'Order Number' },
+            { 
+              field: 'createdBy', 
+              headerName: 'Customer',
+              renderCell: (row: any) => {
+                const { username, loading } = useUsername(row.createdBy);
+                return loading ? "Loading..." : username;
+              }
+            },
             { field: 'amount', headerName: 'Amount' },
             { field: 'status', headerName: 'Status' },
             { field: 'createdAt', headerName: 'Date' }
@@ -157,4 +138,4 @@ export const AdminDashboard = () => {
       </Box>
     </Container>
   );
-};
+});

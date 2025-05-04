@@ -49,4 +49,11 @@ router.put(
   asyncHandler(userController.updateUser),
 );
 
+// Add get user by ID endpoint
+router.get(
+  "/:id",
+  [authMiddleware, rbac(["admin"])],
+  asyncHandler(userController.getUserById),
+);
+
 export default router;
