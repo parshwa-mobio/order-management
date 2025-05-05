@@ -1,17 +1,15 @@
 import React, { memo } from "react";
 import {
-  TextField,
   SelectChangeEvent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   InputAdornment,
+  TextField,
 } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { FormGrid } from "../formCommon/FormGrid";
 import { FormBox } from "../formCommon/FormBox";
-import { PaperBox } from "./PaperBox";
+import { FormTextField } from "../formCommon/FormTextField";
+import { FormSelect } from "../formCommon/FormSelect";
+import { FormPaper } from "../formCommon/FormPaper";
 
 interface FilterOption {
   value: string;
@@ -41,24 +39,26 @@ const FilterField = memo(({
   onChange: (field: string, value: string) => void;
 }) => {
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | SelectChangeEvent<string>
   ) => {
     onChange(filter.field, e.target.value);
   };
 
   if (filter.type === 'text') {
     return (
-      <TextField
-        fullWidth
+      <FormTextField
+        name={filter.field}
         placeholder={`Search ${filter.label.toLowerCase()}...`}
         value={value}
         onChange={handleChange}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            )
+          }
         }}
         size="small"
       />
@@ -67,35 +67,33 @@ const FilterField = memo(({
 
   if (filter.type === 'select') {
     return (
-      <FormControl fullWidth size="small">
-        <InputLabel>{filter.label}</InputLabel>
-        <Select
-          value={value}
-          onChange={handleChange}
-          label={filter.label}
-        >
-          <MenuItem value="">All</MenuItem>
-          {filter.options?.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <FormSelect
+        id={filter.field}
+        name={filter.field}
+        label={filter.label}
+        value={value}
+        onChange={handleChange}
+        options={filter.options}
+      />
     );
   }
 
+  // For date type, use TextField directly from MUI instead of FormTextField
+  // Updated date field to use slotProps instead of InputLabelProps
   return (
     <TextField
-      fullWidth
+      name={filter.field}
       type="date"
       label={filter.label}
       value={value}
       onChange={handleChange}
-      InputLabelProps={{
-        shrink: true,
+      slotProps={{
+        inputLabel: {
+          shrink: true
+        }
       }}
       size="small"
+      fullWidth
     />
   );
 });
@@ -106,7 +104,7 @@ export const DynamicFilter = memo(({
   onChange,
 }: DynamicFilterProps) => {
   return (
-    <PaperBox sx={{ p: 2, mb: 3 }}>
+    <FormPaper sx={{ p: 2, mb: 3 }}>
       <FormBox>
         <FormGrid container spacing={2} alignItems="center">
           {filters.map((filter) => (
@@ -125,6 +123,6 @@ export const DynamicFilter = memo(({
           ))}
         </FormGrid>
       </FormBox>
-    </PaperBox>
+    </FormPaper>
   );
 });

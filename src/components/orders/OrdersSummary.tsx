@@ -43,21 +43,50 @@ export const OrdersSummary = ({
 
   return (
     <FormGrid item xs={12} md={4}>
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ 
+        mb: 3,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        '& .MuiCardContent-root': {
+          flex: 1
+        }
+      }}>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              mb: 2,
+              fontWeight: 600,
+              color: 'text.primary'
+            }}
+          >
             Order Summary
           </Typography>
           {orderItems.length > 0 ? (
             <>
-              <List>
+              <List sx={{ mb: 2 }}>
                 {orderItems.map((item) => (
-                  <ListItem key={item.product.id} divider>
+                  <ListItem 
+                    key={item.product.id} 
+                    divider
+                    sx={{
+                      py: 2,
+                      px: 2,
+                      '&:hover': {
+                        bgcolor: 'action.hover'
+                      }
+                    }}
+                  >
                     <ListItemText
-                      primary={item.product.name}
+                      primary={
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {item.product.name}
+                        </Typography>
+                      }
                       secondary={`$${item.product.price} × ${item.quantity}`}
                     />
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <TextField
                         type="number"
                         size="small"
@@ -68,7 +97,14 @@ export const OrdersSummary = ({
                             parseInt(e.target.value)
                           )
                         }
-                        sx={{ width: 70, mr: 1 }}
+                        sx={{ 
+                          width: 70,
+                          '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': {
+                              borderColor: 'primary.main'
+                            }
+                          }
+                        }}
                         inputProps={{ min: item.product.moq }}
                       />
                       <IconButton
@@ -76,6 +112,11 @@ export const OrdersSummary = ({
                         onClick={() => onRemoveItem(item.product.id)}
                         color="error"
                         size="small"
+                        sx={{
+                          '&:hover': {
+                            bgcolor: 'error.lighter'
+                          }
+                        }}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -83,14 +124,31 @@ export const OrdersSummary = ({
                   </ListItem>
                 ))}
               </List>
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <Box sx={{ 
+                mt: 'auto', 
+                pt: 2,
+                borderTop: 1,
+                borderColor: 'divider'
+              }}>
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: 'primary.main'
+                  }}
+                >
                   Total: ${totalAmount.toFixed(2)}
                 </Typography>
               </Box>
             </>
           ) : (
-            <Alert severity="info">
+            <Alert 
+              severity="info"
+              sx={{
+                bgcolor: 'info.lighter',
+                color: 'info.dark'
+              }}
+            >
               No products added to order yet
             </Alert>
           )}

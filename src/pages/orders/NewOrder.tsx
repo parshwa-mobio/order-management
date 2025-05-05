@@ -134,8 +134,23 @@ const NewOrder = () => {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ mb: 4, fontWeight: 600 }}>
+      <Box sx={{ 
+        py: 4,
+        "& .MuiPaper-root": {
+          boxShadow: (theme) => theme.shadows[2],
+          borderRadius: 2,
+          height: '100%'
+        }
+      }}>
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          sx={{ 
+            mb: 4, 
+            fontWeight: 600,
+            color: 'primary.main' 
+          }}
+        >
           Create New Order
         </Typography>
 
@@ -145,6 +160,8 @@ const NewOrder = () => {
             deliveryDate={deliveryDate}
             onContainerTypeChange={setContainerType}
             onDeliveryDateChange={setDeliveryDate}
+            notes=""
+            onNotesChange={() => {}}
           />
 
           <ProductList
@@ -160,10 +177,26 @@ const NewOrder = () => {
             onRemoveItem={removeFromOrder}
           />
 
-          <FormBox sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, ml: 'auto', width: { xs: '100%', md: '33.33%' } }}>
+          <FormBox 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: 2,
+              mt: 3, 
+              width: '100%'
+            }}
+          >
             <Button
               variant="outlined"
               onClick={() => navigate("/orders")}
+              sx={{
+                borderColor: 'grey.300',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'grey.400',
+                  bgcolor: 'grey.50'
+                }
+              }}
             >
               Cancel
             </Button>
@@ -171,6 +204,13 @@ const NewOrder = () => {
               onClick={handleSubmit}
               disabled={loading || orderItems.length === 0}
               startIcon={loading && <CircularProgress size={20} />}
+              sx={{
+                minWidth: 120,
+                bgcolor: 'primary.main',
+                '&:hover': {
+                  bgcolor: 'primary.dark'
+                }
+              }}
             >
               {loading ? "Submitting..." : "Submit Order"}
             </FormButton>

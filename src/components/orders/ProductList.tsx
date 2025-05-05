@@ -27,12 +27,27 @@ interface ProductListProps {
 }
 
 const ProductListItem = memo(({ product, onAdd }: { product: Product; onAdd: (product: Product) => void }) => (
-  <ListItem divider>
+  <ListItem 
+    divider 
+    sx={{
+      py: 2,
+      '&:hover': {
+        bgcolor: 'action.hover'
+      }
+    }}
+  >
     <Box sx={{ flex: 1 }}>
-      <FormTypography variant="body1">
+      <FormTypography 
+        variant="body1"
+        sx={{ fontWeight: 500 }}
+      >
         {product.name}
       </FormTypography>
-      <FormTypography variant="body2" color="text.secondary">
+      <FormTypography 
+        variant="body2" 
+        color="text.secondary"
+        sx={{ mt: 0.5 }}
+      >
         SKU: {product.sku} | Price: ${product.price}
       </FormTypography>
     </Box>
@@ -41,6 +56,13 @@ const ProductListItem = memo(({ product, onAdd }: { product: Product; onAdd: (pr
       size="small"
       startIcon={<AddIcon />}
       onClick={() => onAdd(product)}
+      sx={{
+        borderColor: 'primary.main',
+        color: 'primary.main',
+        '&:hover': {
+          bgcolor: 'primary.50'
+        }
+      }}
     >
       Add
     </FormButton>
@@ -55,8 +77,20 @@ export const ProductList = memo(({
 }: ProductListProps) => {
   return (
     <FormGrid item xs={12} md={8}>
-      <FormPaper sx={{ p: 3 }}>
-        <FormTypography variant="h6" sx={{ mb: 2 }}>
+      <FormPaper sx={{ 
+        p: 3,
+        '& .MuiList-root': {
+          bgcolor: 'background.paper',
+          borderRadius: 1
+        }
+      }}>
+        <FormTypography 
+          variant="h6" 
+          sx={{ 
+            mb: 2,
+            fontWeight: 600
+          }}
+        >
           Products
         </FormTypography>
         
@@ -66,15 +100,30 @@ export const ProductList = memo(({
           placeholder="Search products..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          sx={{ mb: 2 }}
+          sx={{ 
+            mb: 2,
+            '& .MuiOutlinedInput-root': {
+              bgcolor: 'background.paper',
+              '&:hover fieldset': {
+                borderColor: 'primary.main'
+              }
+            }
+          }}
           startAdornment={
             <InputAdornment position="start">
-              <SearchIcon />
+              <SearchIcon color="action" />
             </InputAdornment>
           }
         />
 
-        <List sx={{ maxHeight: 300, overflow: 'auto', mb: 2 }}>
+        <List sx={{ 
+          maxHeight: 400, 
+          overflow: 'auto', 
+          mb: 2,
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1
+        }}>
           {products.length > 0 ? (
             products.map((product) => (
               <ProductListItem

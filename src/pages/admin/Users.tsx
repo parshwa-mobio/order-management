@@ -5,14 +5,16 @@ import { useUsers } from "../../hooks/useUsers";
 import { DataTable } from "../../components/common/DataTable";
 import { DynamicFilter } from "../../components/common/DynamicFilter";
 import { StatusChip } from "../../components/common/StatusChip";
+import { CreateUserDialog } from "../../components/admin/CreateUserDialog";
+import { EditUserDialog } from "../../components/admin/EditUserDialog";
 
 interface ExtendedUser {
+  id: string;
   _id: string;
   name: string;
   email: string;
   role: string;
-  companyName: string;
-  status: "active" | "inactive";  // Update the type here
+  status: "active" | "inactive";
 }
 
 interface FilterValues extends Record<string, string> {
@@ -21,7 +23,10 @@ interface FilterValues extends Record<string, string> {
 }
 
 const Users = () => {
-  const { users, loading } = useUsers();
+  const { users, loading, createUser, updateUser } = useUsers();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ExtendedUser | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({
     search: "",
     role: "all"
@@ -52,18 +57,53 @@ const Users = () => {
   }, []);
 
   const handleEdit = useCallback((user: ExtendedUser) => {
-    console.log('Edit user:', user);
+    setSelectedUser({
+      ...user,
+      id: user._id // Map _id to id for compatibility
+    });
+    setIsEditDialogOpen(true);
   }, []);
 
   const handleDelete = useCallback((user: ExtendedUser) => {
     console.log('Delete user:', user);
   }, []);
 
+  const handleUpdateUser = async (userData: {
+    name: string;
+    email: string;
+    role: string;
+  }) => {
+    try {
+      if (selectedUser) {
+        await updateUser(selectedUser.id, userData);
+        setIsEditDialogOpen(false);
+        setSelectedUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+
+  const handleCreateUser = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+  }) => {
+    try {
+      await createUser(userData);
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create user:", error);
+    }
+  };
+
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = !filterValues.search || 
-        user.name.toLowerCase().includes(filterValues.search.toLowerCase()) ||
-        user.email.toLowerCase().includes(filterValues.search.toLowerCase());
+      const searchTerm = filterValues.search.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm);
       const matchesRole = filterValues.role === "all" || user.role === filterValues.role;
       return matchesSearch && matchesRole;
     });
@@ -73,15 +113,12 @@ const Users = () => {
     { field: "name", headerName: "Name", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
     { field: "role", headerName: "Role", flex: 1 },
-    { field: "companyName", headerName: "Company", flex: 1 },
     {
       field: "status",
       headerName: "Status",
       flex: 1,
       renderCell: (row: ExtendedUser) => (
-        <StatusChip 
-          status={row.status === "active" ? "active" : "inactive"} 
-        />
+        <StatusChip status={row.status === "active" ? "active" : "inactive"} />
       )
     },
     {
@@ -89,7 +126,7 @@ const Users = () => {
       headerName: "Actions",
       flex: 1,
       renderCell: (row: ExtendedUser) => (
-        <Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <IconButton 
             size="small" 
             onClick={() => handleEdit(row)}
@@ -109,15 +146,6 @@ const Users = () => {
     }
   ], [handleEdit, handleDelete]);
 
-  const styles = {
-    headerButton: {
-      bgcolor: "primary.main",
-      "&:hover": {
-        bgcolor: "primary.dark",
-      }
-    }
-  } as const;
-
   return (
     <Container maxWidth="xl">
       <Box p={3}>
@@ -133,7 +161,13 @@ const Users = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            sx={styles.headerButton}
+            onClick={() => setIsCreateDialogOpen(true)}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              }
+            }}
           >
             New User
           </Button>
@@ -150,6 +184,22 @@ const Users = () => {
           rows={filteredUsers}
           loading={loading}
           emptyMessage="No users found"
+        />
+
+        <CreateUserDialog
+          open={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          onSubmit={handleCreateUser}
+        />
+
+        <EditUserDialog
+          open={isEditDialogOpen}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setSelectedUser(null);
+          }}
+          onSubmit={handleUpdateUser}
+          user={selectedUser}
         />
       </Box>
     </Container>

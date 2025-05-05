@@ -12,6 +12,19 @@ interface User {
   status?: "active" | "inactive";
 }
 
+interface CreateUserData {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
+interface UpdateUserData {
+  name: string;
+  email: string;
+  role: string;
+}
+
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,5 +92,67 @@ export const useUsers = () => {
     }
   };
 
-  return { users, loading, updateUserStatus };
+  const createUser = async (userData: CreateUserData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${baseUrl}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const newUser = await response.json();
+      setUsers((prevUsers) => [...prevUsers, {
+        ...newUser,
+        id: newUser._id,
+        status: "active",
+      }]);
+      showToast("User created successfully", "success");
+      return newUser;
+    } catch (error) {
+      showToast("Failed to create user", "error");
+      throw error;
+    }
+  };
+
+  const updateUser = async (userId: string, userData: UpdateUserData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${baseUrl}/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      const updatedUser = await response.json();
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId
+            ? { ...user, ...updatedUser, id: updatedUser._id }
+            : user
+        )
+      );
+      showToast("User updated successfully", "success");
+      return updatedUser;
+    } catch (error) {
+      showToast("Failed to update user", "error");
+      throw error;
+    }
+  };
+
+  return { users, loading, updateUserStatus, createUser, updateUser };
 };
