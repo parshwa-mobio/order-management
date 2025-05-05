@@ -1,4 +1,4 @@
-import { useExportDashboard } from "../../hooks/useExportDashboard";
+import { useExportDashboard } from "../../hooks/dashboard/useExportDashboard";
 import { FormList } from "../../components/formCommon/FormList";
 import { FormAlert } from "../../components/formCommon/FormAlert";
 import { FormLoading } from "../../components/formCommon/FormLoading";

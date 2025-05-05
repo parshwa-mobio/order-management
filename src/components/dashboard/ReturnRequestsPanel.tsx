@@ -1,4 +1,4 @@
-import { ReturnRequest } from "../../hooks/useSalesDashboard";
+import { ReturnRequest } from "../../hooks/dashboard/useSalesDashboard";
 import {
   Paper,
   Typography,

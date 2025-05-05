@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Alert, SelectChangeEvent, MenuItem } from "@mui/material";
+import { Alert, SelectChangeEvent } from "@mui/material";
 import { FormBox } from "../formCommon/FormBox";
 import { FormButton } from "../formCommon/FormButton";
 import { FormTextField } from "../formCommon/FormTextField";
@@ -60,6 +60,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     }
   }, [formData, register, onSuccess]);
 
+  const roleOptions = [
+    { value: "dealer", label: "Dealer" },
+    { value: "distributor", label: "Distributor" },
+    { value: "sales", label: "Sales Team" },
+    { value: "exportTeam", label: "Export Team" }
+  ];
+
   return (
     <FormBox>
         {error && (
@@ -112,18 +119,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
         />
 
         <FormSelect
-            id="role"
-            name="role"
+          id="role"
+          name="role"
           label="Role"
-            value={formData.role}
-            onChange={handleSelectChange}
+          value={formData.role}
+          onChange={handleSelectChange}
+          options={roleOptions}
+          required
+          fullWidth
           sx={{ mb: 2 }}
-          >
-            <MenuItem value="dealer">Dealer</MenuItem>
-            <MenuItem value="distributor">Distributor</MenuItem>
-            <MenuItem value="sales">Sales Team</MenuItem>
-            <MenuItem value="exportTeam">Export Team</MenuItem>
-        </FormSelect>
+        />
 
         <FormButton
           type="submit"
@@ -137,4 +142,3 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     </FormBox>
   );
 };
-

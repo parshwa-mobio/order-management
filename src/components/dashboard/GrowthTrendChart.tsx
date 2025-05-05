@@ -1,4 +1,4 @@
-import { GrowthTrend } from "../../hooks/useSalesDashboard";
+import { GrowthTrend } from "../../hooks/dashboard/useSalesDashboard";
 import {
   LineChart,
   Line,

@@ -1,12 +1,13 @@
 import { useState, useCallback, useMemo } from "react";
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 import { Box, IconButton, Button, Typography, Container } from "@mui/material";
-import { useUsers } from "../../hooks/useUsers";
+
 import { DataTable } from "../../components/common/DataTable";
 import { DynamicFilter } from "../../components/common/DynamicFilter";
 import { StatusChip } from "../../components/common/StatusChip";
 import { CreateUserDialog } from "../../components/admin/CreateUserDialog";
 import { EditUserDialog } from "../../components/admin/EditUserDialog";
+import { useUsers } from "../../hooks/user/useUsers";
 
 interface ExtendedUser {
   id: string;

@@ -4,6 +4,7 @@ import { ElementType } from "react";
 interface FormGridProps extends GridProps {
   children: React.ReactNode;
   component?: ElementType;
+  container?: boolean;
   item?: boolean;
   xs?: number | boolean;
   sm?: number | boolean;
@@ -12,7 +13,12 @@ interface FormGridProps extends GridProps {
   xl?: number | boolean;
 }
 
-export const FormGrid: React.FC<FormGridProps> = ({ children, component = "div", item = true, ...props }) => {
+export const FormGrid: React.FC<FormGridProps> = ({
+  children,
+  component = "div",
+  item = true,
+  ...props
+}) => {
   return (
     <Grid
       component={component}

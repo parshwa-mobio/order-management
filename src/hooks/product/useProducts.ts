@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "./useToast";
+import { useToast } from "../useToast";
 
 export interface Product {
   id: string;

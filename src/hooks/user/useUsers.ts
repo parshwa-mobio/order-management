@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useToast } from "./useToast";
+import { useToast } from "../useToast";
+
 
 interface User {
   id: string;

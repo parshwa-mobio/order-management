@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useSettings } from "../../hooks/useSettings";
 import { FormContainer } from "../../components/formCommon/FormContainer";
 import { FormCheckbox } from "../../components/formCommon/FormCheckbox";
 import { FormSelect } from "../../components/formCommon/FormSelect";
@@ -8,6 +7,7 @@ import { FormButton } from "../../components/formCommon/FormButton";
 import { FormGrid } from "../../components/formCommon/FormGrid";
 import { FormBox } from "../../components/formCommon/FormBox";
 import { FormPaper } from "../../components/formCommon/FormPaper";
+import { useSettings } from "../../hooks/settings/useSettings";
 
 const Settings = () => {
   const { settings, updateSettings, isLoading, error, resetError } = useSettings();

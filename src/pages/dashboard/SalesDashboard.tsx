@@ -1,5 +1,5 @@
 import { useState, memo } from "react";
-import { useSalesDashboard } from "../../hooks/useSalesDashboard";
+import { useSalesDashboard } from "../../hooks/dashboard/useSalesDashboard";
 import { SalesTargetChart } from "../../components/dashboard/SalesTargetChart";
 import { GrowthTrendChart } from "../../components/dashboard/GrowthTrendChart";
 import { DistributorPerformancePanel } from "../../components/dashboard/DistributorPerformancePanel";

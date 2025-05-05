@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Plus } from "lucide-react";
-import { Category } from "../../hooks/useCategories";
+import { Category } from "../../hooks/categories/useCategories";
 import { Stack, Box } from "@mui/material";  // Added Box import
 import { FormContainer } from "../formCommon/FormContainer";
 import { FormTextField } from "../formCommon/FormTextField";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Trash2 } from "lucide-react";
-import { Category } from "../../hooks/useCategories";
+import { Category } from "../../hooks/categories/useCategories";
 import { Link } from "react-router-dom";
 
 interface CategoryTableProps {

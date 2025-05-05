@@ -1,4 +1,4 @@
-import { RecentOrder } from "../../hooks/useSalesDashboard";
+import { RecentOrder } from "../../hooks/dashboard/useSalesDashboard";
 import {
   Paper,
   Typography,

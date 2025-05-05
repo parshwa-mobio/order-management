@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useAdminDashboard } from "../../hooks/useAdminDashboard";
+import { useAdminDashboard } from "../../hooks/dashboard/useAdminDashboard";
 import { FormCard } from "../../components/formCommon/FormCard";
 import { FormAlert } from "../../components/formCommon/FormAlert";
 import { FormTable } from "../../components/formCommon/FormTable";
@@ -9,11 +9,10 @@ import { FormList } from "../../components/formCommon/FormList";
 import { OrderTrendChart } from "../../components/dashboard/OrderTrendChart";
 import { UserRoleChart } from "../../components/dashboard/UserRoleChart";
 import { Box, Typography, Container } from "@mui/material";
-import { useUsername } from "../../hooks/useUsername";
+import { useUsername } from "../../hooks/user/useUsername";
 
 export const AdminDashboard = memo(() => {
   const { data, loading, error } = useAdminDashboard();
-console.log({data})
   if (loading) return <FormLoading fullScreen />;
 
   if (error) return (

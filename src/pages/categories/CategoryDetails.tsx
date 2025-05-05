@@ -1,30 +1,40 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
-import { Box, Typography, Button, Container, CircularProgress } from "@mui/material";
-import { Category, useCategories } from "../../hooks/useCategories";
-import { useCategoryDetails } from "../../hooks/useCategoryDetails";
+import {
+  Box,
+  Typography,
+  Button,
+  Container,
+  CircularProgress,
+} from "@mui/material";
+import { Category, useCategories } from "../../hooks/categories/useCategories";
 import { CategoryForm } from "../../components/categories/CategoryForm";
 
 const CategoryDetails = () => {
   const { id } = useParams();
-  const { updateCategory } = useCategories();
-  const { category, loading, fetchCategory } = useCategoryDetails(id);
+  const { updateCategory, getCategoryById, category, loading } =
+    useCategories(id);
   const [editing, setEditing] = useState(false);
 
-  const handleSubmit = async (formData: Omit<Category, '_id'>) => {
+  const handleSubmit = async (formData: Omit<Category, "_id">) => {
     if (!id) return;
     try {
       await updateCategory(id, formData);
       setEditing(false);
-      await fetchCategory();
+      await getCategoryById(id);
     } catch (err) {
-      console.error('Failed to update category:', err);
+      console.error("Failed to update category:", err);
     }
   };
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -46,14 +56,19 @@ const CategoryDetails = () => {
             initialData={{
               name: category.name,
               description: category.description,
-              imageUrl: category.imageUrl || ''
+              imageUrl: category.imageUrl || "",
             }}
             onSubmit={handleSubmit}
             onCancel={() => setEditing(false)}
           />
         ) : (
           <>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={3}
+            >
               <Typography variant="h4" component="h1">
                 {category.name}
               </Typography>
@@ -76,8 +91,8 @@ const CategoryDetails = () => {
                 sx={{
                   height: 128,
                   width: 128,
-                  objectFit: 'cover',
-                  borderRadius: 1
+                  objectFit: "cover",
+                  borderRadius: 1,
                 }}
               />
             )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { useToast } from "./useToast";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../useToast";
 
 export interface OrderSummary {
   totalOrders: number;

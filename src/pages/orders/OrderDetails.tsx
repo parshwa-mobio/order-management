@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useOrderDetails } from "../../hooks/useOrderDetails";
+import { useOrderDetails } from "../../hooks/order/useOrderDetails";
 
 const OrderDetailsPage = () => {
   const { orderId } = useParams<{ orderId: string }>();

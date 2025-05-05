@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from "react";
-import { useCategories } from "../../hooks/useCategories";
+import { useCategories } from "../../hooks/categories/useCategories";
 import { Button, Typography, Box, Container } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { DataTable } from "../../components/common/DataTable";
@@ -21,7 +21,7 @@ const Categories = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+  }, []); // Remove fetchCategories from dependencies
 
   const handleDelete = useCallback(async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this category?")) {

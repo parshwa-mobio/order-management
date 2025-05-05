@@ -1,7 +1,7 @@
-import React from "react";
-import { FormControl, InputLabel, Select, FormHelperText, SelectChangeEvent, MenuItem } from "@mui/material";
 
-interface SelectOption {
+import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, SxProps, Theme } from "@mui/material";
+
+interface Option {
   value: string;
   label: string;
 }
@@ -11,32 +11,26 @@ interface FormSelectProps {
   name: string;
   label: string;
   value: string;
-  onChange: (e: SelectChangeEvent) => void;
-  options?: readonly SelectOption[];
-  children?: React.ReactNode;
-  fullWidth?: boolean;
+  onChange: (e: SelectChangeEvent<string>) => void;
+  options: Option[];
   required?: boolean;
-  error?: boolean;
-  helperText?: string;
-  sx?: any;
+  fullWidth?: boolean;  // Add fullWidth prop
+  sx?: SxProps<Theme>;
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({
+export const FormSelect = ({
   id,
   name,
   label,
   value,
   onChange,
   options,
-  children,
-  fullWidth = true,
   required = false,
-  error = false,
-  helperText,
+  fullWidth = true,  // Default to true for backward compatibility
   sx,
-}) => {
+}: FormSelectProps) => {
   return (
-    <FormControl fullWidth={fullWidth} required={required} error={error} sx={sx}>
+    <FormControl fullWidth={fullWidth} required={required} sx={sx}>
       <InputLabel id={`${id}-label`}>{label}</InputLabel>
       <Select
         labelId={`${id}-label`}
@@ -46,17 +40,12 @@ export const FormSelect: React.FC<FormSelectProps> = ({
         label={label}
         onChange={onChange}
       >
-        {options ? (
-          options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))
-        ) : (
-          children
-        )}
+        {options.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            {option.label}
+          </MenuItem>
+        ))}
       </Select>
-      {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>
   );
 };

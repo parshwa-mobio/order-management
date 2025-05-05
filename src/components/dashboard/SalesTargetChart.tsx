@@ -1,4 +1,4 @@
-import { SalesTarget } from "../../hooks/useSalesDashboard";
+import { SalesTarget } from "../../hooks/dashboard/useSalesDashboard";
 import {
   BarChart,
   Bar,

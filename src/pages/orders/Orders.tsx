@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Box, Typography, Button, Container } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import { useOrders } from "../../hooks/useOrders";
+import { useOrders } from "../../hooks/order/useOrders";
 import { OrdersTable } from "../../components/orders/OrdersTable";
 import { DynamicFilter } from "../../components/common/DynamicFilter";
 

@@ -1,4 +1,4 @@
-import { useDistributorDashboard } from "../../hooks/useDistributorDashboard";
+import { useDistributorDashboard } from "../../hooks/dashboard/useDistributorDashboard";
 import { FormCard } from "../../components/formCommon/FormCard";
 import { FormList } from "../../components/formCommon/FormList";
 import { FormGrid } from "../../components/formCommon/FormGrid";

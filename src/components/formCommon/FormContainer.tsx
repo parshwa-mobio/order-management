@@ -1,30 +1,60 @@
-import { Box, Paper } from "@mui/material";
 import { ReactNode } from "react";
-import { FormTypography } from "./FormTypography";
+import { Container, ContainerProps, Theme } from "@mui/material";
+import { FormBox } from "./FormBox";
+import { FormPaper } from "./FormPaper";
+
+// Default style configurations
+const defaultStyles = {
+  container: { maxWidth: "lg" } as const,
+  box: {
+    sx: {
+      py: 4,
+      px: 3,
+      '& .MuiPaper-root': {
+        boxShadow: (theme: Theme) => theme.shadows[2],
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+      }
+    }
+  }
+};
 
 interface FormContainerProps {
-  title: string;
+  title?: string;
   children: ReactNode;
   onSubmit?: (e: React.FormEvent) => void;
+  containerProps?: ContainerProps;
+  boxProps?: React.ComponentProps<typeof FormBox>;
 }
 
-export const FormContainer = ({
+export const FormContainer: React.FC<FormContainerProps> = ({
   title,
   children,
   onSubmit,
-}: FormContainerProps) => {
+  containerProps = defaultStyles.container,
+  boxProps = defaultStyles.box
+}) => {
+  const content = (
+    <FormBox
+      component={onSubmit ? "form" : "div"}
+      onSubmit={onSubmit}
+      sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+    >
+      {children}
+    </FormBox>
+  );
+
   return (
-    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-      <FormTypography variant="h5" component="h1" sx={{ mb: 3 }}>
-        {title}
-      </FormTypography>
-      <Box
-        component={onSubmit ? "form" : "div"}
-        onSubmit={onSubmit}
-        sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-      >
-        {children}
-      </Box>
-    </Paper>
+    <Container {...containerProps}>
+      <FormBox {...boxProps}>
+        {title ? (
+          <FormPaper title={title}>
+            {content}
+          </FormPaper>
+        ) : (
+          content
+        )}
+      </FormBox>
+    </Container>
   );
 };

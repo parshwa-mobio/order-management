@@ -1,4 +1,4 @@
-import { DistributorPerformance } from "../../hooks/useSalesDashboard";
+import { DistributorPerformance } from "../../hooks/dashboard/useSalesDashboard";
 import {
   Paper,
   Typography,

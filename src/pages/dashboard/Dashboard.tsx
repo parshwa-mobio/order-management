@@ -1,5 +1,5 @@
 import { useAuth } from "../../contexts/AuthContext";
-import { useDashboard } from "../../hooks/useDashboard";
+import { useDashboard } from "../../hooks/dashboard/useDashboard";
 import { AdminDashboard } from "./AdminDashboard";
 import { SalesDashboard } from "./SalesDashboard";
 import { DistributorDashboard } from "./DistributorDashboard";

@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { Product, useProducts } from "../../hooks/useProducts";
+import { Product, useProducts } from "../../hooks/product/useProducts";
+import { useCategories } from "../../hooks/categories/useCategories";
 import { IconButton, Button, Typography, Box, Container } from "@mui/material";
 import { DataTable } from "../../components/common/DataTable";
 import { DynamicFilter } from "../../components/common/DynamicFilter";
@@ -24,7 +25,8 @@ const Products = () => {
   });
 
   const { products, loading } = useProducts();
-
+  const { categories } = useCategories();
+  // Update productFilters to use _id instead of id
   const productFilters = useMemo(() => [
     {
       field: "search",
@@ -36,13 +38,14 @@ const Products = () => {
       label: "Category",
       type: "select" as const,
       options: [
-        { value: "distributor", label: "Distributor" },
-        { value: "dealer", label: "Dealer" },
-        { value: "sales", label: "Sales" },
-        { value: "exportTeam", label: "Export Team" }
+        { value: "", label: "All Categories" },
+        ...categories.map(cat => ({
+          value: cat._id,  // Changed from id to _id
+          label: cat.name
+        }))
       ]
     }
-  ], []);
+  ], [categories]);
 
   const handleFilterChange = useCallback((field: string, value: string) => {
     setFilterValues(prev => ({ ...prev, [field]: value }));
@@ -60,8 +63,23 @@ const Products = () => {
 
   const columns = useMemo(() => [
     { field: "name", headerName: "Name", flex: 1 },
-    { field: "category", headerName: "Category", flex: 1 },
-    { field: "price", headerName: "Price", flex: 1 },
+    { 
+      field: "category", 
+      headerName: "Category", 
+      flex: 1,
+      renderCell: (row: ExtendedProduct) => {
+        const category = categories.find(cat => cat._id === row.category);
+        return category?.name || 'Unknown Category';
+      }
+    },
+    { 
+      field: "basePrice", 
+      headerName: "Price", 
+      flex: 1,
+      renderCell: (row: ExtendedProduct) => (
+        `$${row.basePrice.toFixed(2)}`
+      )
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -85,7 +103,7 @@ const Products = () => {
         </Box>
       )
     }
-  ], []);
+  ], [categories]);
 
   const styles = {
     headerButton: {

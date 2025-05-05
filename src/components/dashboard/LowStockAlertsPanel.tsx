@@ -1,4 +1,4 @@
-import { LowStockAlert } from "../../hooks/useSalesDashboard";
+import { LowStockAlert } from "../../hooks/dashboard/useSalesDashboard";
 import {
   Paper,
   Typography,
