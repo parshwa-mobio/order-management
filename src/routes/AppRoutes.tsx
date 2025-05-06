@@ -18,7 +18,7 @@ import NewOrder from "../pages/orders/NewOrder";
 import OrderDetails from "../pages/orders/OrderDetails";
 import Products from "../pages/products/Products";
 import Reports from "../pages/reports/Reports";
-import Settings from "../pages/Settings";
+import Settings from "../pages/settings/Settings";
 import Profile from "../pages/profile/Profile";
 import Users from "../pages/admin/Users"; // Add this import
 import ProductCreate from "../pages/products/ProductCreate";

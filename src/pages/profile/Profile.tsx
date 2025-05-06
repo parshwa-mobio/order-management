@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { User as UserIcon, Save } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { FormContainer } from "../../components/formCommon/FormContainer";
+import { FormButton } from "../../components/formCommon/FormButton";
+import { FormGrid } from "../../components/formCommon/FormGrid";
+import { FormBox } from "../../components/formCommon/FormBox";
+import { FormPaper } from "../../components/formCommon/FormPaper";
+import { FormTypography } from "../../components/formCommon/FormTypography";
+import { FormTextField } from "../../components/formCommon/FormTextField";
 
 interface ProfileForm {
   name: string;
@@ -26,176 +33,235 @@ const Profile = () => {
     confirmPassword: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfile({
-      ...profile,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (field: keyof ProfileForm) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setProfile(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Will be replaced with API call
-    console.log("Profile updated:", profile);
+    // Add your submit logic here
   };
 
+  const renderProfilePicture = () => (
+    <FormGrid item xs={12}>
+      <FormBox
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: 3, md: 6 },
+          p: 3,
+          backgroundColor: "background.paper",
+          borderRadius: 1,
+          boxShadow: 1
+        }}
+      >
+        <FormBox
+          sx={{
+            width: { xs: 72, sm: 96 },
+            height: { xs: 72, sm: 96 },
+            borderRadius: "50%",
+            backgroundColor: "grey.100",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: 1,
+            borderColor: "divider"
+          }}
+        >
+          <UserIcon size={36} />
+        </FormBox>
+        <FormBox>
+          <FormTypography variant="h6" gutterBottom>
+            Profile Picture
+          </FormTypography>
+          <FormTypography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 2 }}
+          >
+            Update your profile picture
+          </FormTypography>
+          <FormButton
+            variant="outlined"
+            size="small"
+          >
+            Change
+          </FormButton>
+        </FormBox>
+      </FormBox>
+    </FormGrid>
+  );
+
+  const renderPersonalInfo = () => (
+    <FormGrid item xs={12}>
+      <FormBox
+        sx={{
+          backgroundColor: "background.paper",
+          p: 3,
+          borderRadius: 1,
+          boxShadow: 1
+        }}
+      >
+        <FormTypography variant="h6" gutterBottom>
+          Personal Information
+        </FormTypography>
+        <FormGrid container spacing={3}>
+          <FormGrid item xs={12} sm={6}>
+            <FormTextField
+              fullWidth
+              label="Full Name"
+              name="name"
+              value={profile.name}
+              onChange={handleChange("name")}
+            />
+          </FormGrid>
+          <FormGrid item xs={12} sm={6}>
+            <FormTextField
+              fullWidth
+              label="Email"
+              name="email"
+              type="email"
+              value={profile.email}
+              onChange={handleChange("email")}
+            />
+          </FormGrid>
+          <FormGrid item xs={12} sm={6}>
+            <FormTextField
+              fullWidth
+              label="Company Name"
+              name="companyName"
+              value={profile.companyName}
+              onChange={handleChange("companyName")}
+            />
+          </FormGrid>
+          <FormGrid item xs={12} sm={6}>
+            <FormTextField
+              fullWidth
+              label="Distributor Code"
+              name="distributorCode"
+              value={profile.distributorCode}
+              onChange={() => {}}
+              readOnly
+            />
+          </FormGrid>
+          <FormGrid item xs={12} sm={6}>
+            <FormTextField
+              fullWidth
+              label="Phone Number"
+              name="phone"
+              type="text"
+              value={profile.phone}
+              onChange={handleChange("phone")}
+            />
+          </FormGrid>
+        </FormGrid>
+      </FormBox>
+    </FormGrid>
+  );
+
+  const renderPasswordSection = () => (
+    <FormGrid item xs={12}>
+      <FormBox
+        sx={{
+          backgroundColor: "background.paper",
+          p: 3,
+          borderRadius: 1,
+          boxShadow: 1
+        }}
+      >
+        <FormTypography variant="h6" gutterBottom>
+          Change Password
+        </FormTypography>
+        <FormGrid container spacing={3}>
+          <FormGrid item xs={12}>
+            <FormTextField
+              fullWidth
+              label="Current Password"
+              name="currentPassword"
+              type="password"
+              value={profile.currentPassword}
+              onChange={handleChange("currentPassword")}
+            />
+          </FormGrid>
+          <FormGrid item xs={12}>
+            <FormTextField
+              fullWidth
+              label="New Password"
+              name="newPassword"
+              type="password"
+              value={profile.newPassword}
+              onChange={handleChange("newPassword")}
+            />
+          </FormGrid>
+          <FormGrid item xs={12}>
+            <FormTextField
+              fullWidth
+              label="Confirm New Password"
+              name="confirmPassword"
+              type="password"
+              value={profile.confirmPassword}
+              onChange={handleChange("confirmPassword")}
+            />
+          </FormGrid>
+        </FormGrid>
+      </FormBox>
+    </FormGrid>
+  );
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-      </div>
+    <FormBox sx={{ p: { xs: 2, sm: 4, md: 6 } }}>
+      <FormBox
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+          borderBottom: 1,
+          borderColor: "divider",
+          pb: 2
+        }}
+      >
+        <FormTypography variant="h4" component="h1">
+          Profile Settings
+        </FormTypography>
+      </FormBox>
 
-      <div className="bg-white rounded-lg shadow">
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="flex items-center space-x-6">
-            <div className="flex-shrink-0">
-              <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                <UserIcon className="h-12 w-12 text-gray-400" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">
-                Profile Picture
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Update your profile picture
-              </p>
-              <button
-                type="button"
-                className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Change
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Personal Information
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={profile.name}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={profile.email}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    value={profile.companyName}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Distributor Code
-                  </label>
-                  <input
-                    type="text"
-                    name="distributorCode"
-                    value={profile.distributorCode}
-                    onChange={handleChange}
-                    readOnly
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-50 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={profile.phone}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Change Password
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={profile.currentPassword}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={profile.newPassword}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={profile.confirmPassword}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <FormPaper elevation={2}>
+        <FormContainer title="Profile" onSubmit={handleSubmit}>
+          <FormBox sx={{ p: { xs: 2, sm: 4, md: 6 } }}>
+            <FormGrid container spacing={{ xs: 3, md: 6 }}>
+              {renderProfilePicture()}
+              {renderPersonalInfo()}
+              {renderPasswordSection()}
+              
+              <FormGrid item xs={12}>
+                <FormBox
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    mt: 2
+                  }}
+                >
+                  <FormButton
+                    type="submit"
+                    startIcon={<Save size={16} />}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Save Changes
+                  </FormButton>
+                </FormBox>
+              </FormGrid>
+            </FormGrid>
+          </FormBox>
+        </FormContainer>
+      </FormPaper>
+    </FormBox>
   );
 };
 

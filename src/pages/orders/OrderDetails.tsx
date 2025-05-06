@@ -1,80 +1,9 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
-interface OrderItem {
-  name: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
-
-interface OrderDetails {
-  id: string;
-  items: OrderItem[];
-  pricing: {
-    subtotal: number;
-    tax: number;
-    total: number;
-  };
-  contractInfo: {
-    contractNumber: string;
-    contractDate: string;
-  };
-  // Add other fields as needed
-}
-
-interface Shipment {
-  status: string;
-  trackingNumber: string;
-  erpStatus: string;
-  cargoTracking: string;
-}
-
-interface Document {
-  id: string;
-  name: string;
-  url: string;
-}
+import { useOrderDetails } from "../../hooks/order/useOrderDetails";
 
 const OrderDetailsPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const [order, setOrder] = useState<OrderDetails | null>(null);
-  const [shipment, setShipment] = useState<Shipment | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchOrderDetails = async () => {
-      setLoading(true);
-      try {
-        // Fetch order details
-        const orderRes = await fetch(`/api/orders/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const orderData = await orderRes.json();
-        setOrder(orderData);
-
-        // Fetch shipment info
-        const shipmentRes = await fetch(`/api/shipment/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const shipmentData = await shipmentRes.json();
-        setShipment(shipmentData);
-
-        // Fetch documents
-        const docsRes = await fetch(`/api/documents/order/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
-        const docsData = await docsRes.json();
-        setDocuments(docsData);
-      } catch (err) {
-        // Optionally handle error
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrderDetails();
-  }, [id]);
+  const { orderId } = useParams<{ orderId: string }>();
+  const { order, shipment, documents, loading } = useOrderDetails(orderId);
 
   if (loading) {
     return <div className="p-6">Loading...</div>;
@@ -89,8 +18,8 @@ const OrderDetailsPage = () => {
       <h1 className="text-2xl font-bold mb-4">Order Details</h1>
       <div className="mb-6">
         <h2 className="text-lg font-semibold">Contract Info</h2>
-        <p>Contract Number: {order.contractInfo.contractNumber}</p>
-        <p>Contract Date: {order.contractInfo.contractDate}</p>
+        <p>Contract Number: {order.contractInfo?.contractNumber || 'N/A'}</p>
+        <p>Contract Date: {order.contractInfo?.contractDate || 'N/A'}</p>
       </div>
       <div className="mb-6">
         <h2 className="text-lg font-semibold">Items</h2>

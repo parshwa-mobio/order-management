@@ -65,7 +65,7 @@ export class UserController {
         pagination: paginationHelper.getPaginationData(
           total,
           pagination.page,
-          pagination.limit,
+          pagination.limit
         ),
       });
     } catch (error) {
@@ -80,8 +80,7 @@ export class UserController {
 
       const user = await User.findById(req.params.id)
         .select("-password -mfaSecret -loginAttempts")
-        .lean()
-        .cache(60);
+        .lean();
 
       if (!user) {
         return responseHandler.notFound(res, "User not found");
@@ -126,7 +125,7 @@ export class UserController {
       const user = await User.findByIdAndUpdate(
         req.user.id,
         { $set: updates },
-        { new: true, runValidators: true },
+        { new: true, runValidators: true }
       ).select("-password -mfaSecret -loginAttempts");
 
       if (!user) {

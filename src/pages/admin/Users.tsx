@@ -1,153 +1,209 @@
-import { useState } from "react";
-import { Search, Filter } from "lucide-react";
-import { useUsers } from "../../hooks/useUsers";
+import { useState, useCallback, useMemo } from "react";
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
+import { Box, IconButton, Button, Typography, Container } from "@mui/material";
+
+import { DataTable } from "../../components/common/DataTable";
+import { DynamicFilter } from "../../components/common/DynamicFilter";
+import { StatusChip } from "../../components/common/StatusChip";
+import { CreateUserDialog } from "../../components/admin/CreateUserDialog";
+import { EditUserDialog } from "../../components/admin/EditUserDialog";
+import { useUsers } from "../../hooks/user/useUsers";
+
+interface ExtendedUser {
+  id: string;
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: "active" | "inactive";
+}
+
+interface FilterValues extends Record<string, string> {
+  search: string;
+  role: string;
+}
 
 const Users = () => {
-  const { users, loading, updateUserStatus } = useUsers();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
+  const { users, loading, createUser, updateUser } = useUsers();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ExtendedUser | null>(null);
+  const [filterValues, setFilterValues] = useState<FilterValues>({
+    search: "",
+    role: "all"
   });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const userFilters = useMemo(() => [
+    {
+      field: "search",
+      label: "Search Users",
+      type: "text" as const
+    },
+    {
+      field: "role",
+      label: "Role",
+      type: "select" as const,
+      options: [
+        { value: "all", label: "All Roles" },
+        { value: "distributor", label: "Distributor" },
+        { value: "dealer", label: "Dealer" },
+        { value: "sales", label: "Sales" },
+        { value: "exportTeam", label: "Export Team" }
+      ]
+    }
+  ], []);
+
+  const handleFilterChange = useCallback((field: string, value: string) => {
+    setFilterValues(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleEdit = useCallback((user: ExtendedUser) => {
+    setSelectedUser({
+      ...user,
+      id: user._id // Map _id to id for compatibility
+    });
+    setIsEditDialogOpen(true);
+  }, []);
+
+  const handleDelete = useCallback((user: ExtendedUser) => {
+    console.log('Delete user:', user);
+  }, []);
+
+  const handleUpdateUser = async (userData: {
+    name: string;
+    email: string;
+    role: string;
+  }) => {
+    try {
+      if (selectedUser) {
+        await updateUser(selectedUser.id, userData);
+        setIsEditDialogOpen(false);
+        setSelectedUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to update user:", error);
+    }
+  };
+
+  const handleCreateUser = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+  }) => {
+    try {
+      await createUser(userData);
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create user:", error);
+    }
+  };
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const searchTerm = filterValues.search.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm);
+      const matchesRole = filterValues.role === "all" || user.role === filterValues.role;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, filterValues]);
+
+  const columns = useMemo(() => [
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "email", headerName: "Email", flex: 1 },
+    { field: "role", headerName: "Role", flex: 1 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      renderCell: (row: ExtendedUser) => (
+        <StatusChip status={row.status === "active" ? "active" : "inactive"} />
+      )
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1,
+      renderCell: (row: ExtendedUser) => (
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <IconButton 
+            size="small" 
+            onClick={() => handleEdit(row)}
+            color="primary"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton 
+            size="small" 
+            onClick={() => handleDelete(row)}
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+  ], [handleEdit, handleDelete]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
+    <Container maxWidth="xl">
+      <Box p={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography variant="h4" component="h1" color="primary.main">
+            User Management
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setIsCreateDialogOpen(true)}
+            sx={{
+              bgcolor: "primary.main",
+              "&:hover": {
+                bgcolor: "primary.dark",
+              }
+            }}
+          >
+            New User
+          </Button>
+        </Box>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="sm:w-64">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Filter className="h-5 w-5 text-gray-400" />
-                </div>
-                <select
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="distributor">Distributor</option>
-                  <option value="dealer">Dealer</option>
-                  <option value="sales">Sales</option>
-                  <option value="exportTeam">Export Team</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DynamicFilter
+          filters={userFilters}
+          values={filterValues}
+          onChange={handleFilterChange}
+        />
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Company
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      {user.companyName || "-"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        (user.status || "active") === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {(user.status || "active").charAt(0).toUpperCase() +
-                        (user.status || "active").slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() =>
-                        updateUserStatus(
-                          user.id,
-                          (user.status || "active") === "active"
-                            ? "inactive"
-                            : "active",
-                        )
-                      }
-                      className={`px-3 py-1 rounded-md text-sm font-medium ${
-                        (user.status || "active") === "active"
-                          ? "text-red-600 hover:text-red-900"
-                          : "text-green-600 hover:text-green-900"
-                      }`}
-                    >
-                      {(user.status || "active") === "active"
-                        ? "Deactivate"
-                        : "Activate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        <DataTable
+          columns={columns}
+          rows={filteredUsers}
+          loading={loading}
+          emptyMessage="No users found"
+        />
+
+        <CreateUserDialog
+          open={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          onSubmit={handleCreateUser}
+        />
+
+        <EditUserDialog
+          open={isEditDialogOpen}
+          onClose={() => {
+            setIsEditDialogOpen(false);
+            setSelectedUser(null);
+          }}
+          onSubmit={handleUpdateUser}
+          user={selectedUser}
+        />
+      </Box>
+    </Container>
   );
 };
 

@@ -49,11 +49,10 @@ interface AuthContextType {
   hasPermission: (permission: string) => boolean;
 }
 
-// Change this line to export the context
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+// Create the context with undefined as initial value
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Export the context provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -313,6 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// Export the useAuth hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -320,3 +320,6 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Export the context as default
+export default AuthContext;

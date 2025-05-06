@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
-import { useCategories } from "../../hooks/useCategories";
+import { useEffect, useCallback, useState } from "react";
+import { useCategories } from "../../hooks/categories/useCategories";
+import { Button, Typography, Box, Container } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
+import { DataTable } from "../../components/common/DataTable";
+import { DynamicFilter } from "../../components/common/DynamicFilter";
 import AddCategoryForm from "../../components/categories/AddCategoryForm";
-import CategoryTable from "../../components/categories/CategoryTable";
 
 const Categories = () => {
   const {
@@ -11,50 +14,120 @@ const Categories = () => {
     createCategory,
     deleteCategory,
   } = useCategories();
-  const [creating, setCreating] = useState(false);
+
+  const [filterValues, setFilterValues] = useState({
+    name: ""
+  });
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+  }, []); // Remove fetchCategories from dependencies
 
-  const handleCreate = async (category: {
-    name: string;
-    description: string;
-    imageUrl?: string;
-  }) => {
-    setCreating(true);
-    try {
-      await createCategory(category);
-    } catch (err) {
-      // Optionally show error toast
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this category?"))
+  const handleDelete = useCallback(async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) {
       return;
-    try {
-      await deleteCategory(id);
-    } catch (err) {
-      // Optionally show error toast
     }
-  };
+    await deleteCategory(id);
+  }, [deleteCategory]);
+
+  const handleFilterChange = useCallback((field: string, value: string) => {
+    setFilterValues(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const columns = [
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "description", headerName: "Description", flex: 2 },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 1,
+      renderCell: (row: any) => (
+        <Button
+          color="error"
+          onClick={() => handleDelete(row._id)}
+          size="small"
+        >
+          Delete
+        </Button>
+      ),
+    },
+  ];
+
+  const filters = [
+    {
+      field: "name",
+      label: "Search Category",
+      type: "text" as const,
+    }
+  ];
+
+  const filteredCategories = categories.filter(category => 
+    filterValues.name ? 
+      category.name.toLowerCase().includes(filterValues.name.toLowerCase()) : 
+      true
+  );
+
+  const styles = {
+    headerButton: {
+      bgcolor: "primary.main",
+      "&:hover": {
+        bgcolor: "primary.dark",
+      }
+    }
+  } as const;
+
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Categories</h1>
-      <div className="bg-white rounded-lg shadow mb-8 p-6">
-        <h2 className="text-lg font-semibold mb-4">Add New Category</h2>
-        <AddCategoryForm onCreate={handleCreate} creating={creating} />
-      </div>
-      <CategoryTable
-        categories={categories}
-        loading={loading}
-        onDelete={handleDelete}
-      />
-    </div>
+    <Container maxWidth="xl">
+      <Box p={3}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={3}
+        >
+          <Typography variant="h4" component="h1" color="primary.main">
+            Categories
+          </Typography>
+          {!isAddingCategory && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setIsAddingCategory(true)}
+              sx={styles.headerButton}
+            >
+              Add Category
+            </Button>
+          )}
+        </Box>
+
+        {isAddingCategory && (
+          <Box mb={3}>
+            <AddCategoryForm 
+              onCreate={async (data) => {
+                await createCategory(data);
+                setIsAddingCategory(false);
+              }} 
+              creating={false}
+              onCancel={() => setIsAddingCategory(false)}
+            />
+          </Box>
+        )}
+        
+        <DynamicFilter
+          filters={filters}
+          values={filterValues}
+          onChange={handleFilterChange}
+        />
+        <DataTable
+          columns={columns}
+          rows={filteredCategories}
+          loading={loading}
+          emptyMessage="No categories found"
+        />
+      </Box>
+    </Container>
   );
 };
 

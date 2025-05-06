@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { Box, Typography } from "@mui/material";
 
 interface UserRoleChartProps {
   data: Array<{ role: string; count: number }>;
@@ -14,9 +15,11 @@ interface UserRoleChartProps {
 
 export const UserRoleChart = ({ data }: UserRoleChartProps) => {
   return (
-    <div className="bg-white p-6 rounded-lg shadow h-full">
-      <h2 className="text-lg font-semibold mb-4">Users by Role</h2>
-      <div className="w-full flex justify-center items-center">
+    <Box sx={{ bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 1, height: '100%' }}>
+      <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+        Users by Role
+      </Typography>
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <BarChart width={400} height={250} data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="role" />
@@ -25,7 +28,7 @@ export const UserRoleChart = ({ data }: UserRoleChartProps) => {
           <Legend />
           <Bar dataKey="count" fill="#82ca9d" />
         </BarChart>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
-};
+}; 

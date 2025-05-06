@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Alert, Snackbar, Box, Stack, SnackbarOrigin } from "@mui/material";
 
 interface Toast {
   id: string;
@@ -21,34 +22,45 @@ export const Toaster = ({ position = "bottom-right" }: ToasterProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  const positionClasses = {
-    "top-right": "top-0 right-0",
-    "top-left": "top-0 left-0",
-    "bottom-right": "bottom-0 right-0",
-    "bottom-left": "bottom-0 left-0",
+  // Convert position to MUI anchor origin
+  const getAnchorOrigin = (pos: string): SnackbarOrigin => {
+    switch (pos) {
+      case "top-right":
+        return { vertical: "top", horizontal: "right" };
+      case "top-left":
+        return { vertical: "top", horizontal: "left" };
+      case "bottom-right":
+        return { vertical: "bottom", horizontal: "right" };
+      case "bottom-left":
+        return { vertical: "bottom", horizontal: "left" };
+      default:
+        return { vertical: "bottom", horizontal: "right" };
+    }
   };
 
+  const anchorOrigin = getAnchorOrigin(position);
+
   return (
-    <div
-      className={`fixed z-50 m-8 w-72 space-y-4 ${positionClasses[position]}`}
-      role="alert"
-      aria-live="assertive"
-    >
-      {toasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`rounded-lg p-4 ${
-            toast.type === "success"
-              ? "bg-green-50 text-green-800"
-              : toast.type === "error"
-                ? "bg-red-50 text-red-800"
-                : "bg-blue-50 text-blue-800"
-          } shadow-lg transform transition-all duration-300 ease-in-out`}
-        >
-          {toast.message}
-        </div>
-      ))}
-    </div>
+    <Box sx={{ position: "fixed", zIndex: 9999 }}>
+      <Stack spacing={2} sx={{ width: "100%", maxWidth: 300 }}>
+        {toasts.map((toast) => (
+          <Snackbar
+            key={toast.id}
+            open={true}
+            anchorOrigin={anchorOrigin}
+            sx={{ position: "relative" }}
+          >
+            <Alert
+              severity={toast.type}
+              variant="filled"
+              sx={{ width: "100%" }}
+            >
+              {toast.message}
+            </Alert>
+          </Snackbar>
+        ))}
+      </Stack>
+    </Box>
   );
 };
 

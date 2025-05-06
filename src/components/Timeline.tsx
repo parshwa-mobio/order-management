@@ -1,3 +1,14 @@
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+import {
+  TimelineItem as MuiTimelineItem,
+  TimelineSeparator,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  Timeline as MuiTimeline
+} from '@mui/lab';
+
 interface TimelineEvent {
   status: string;
   date: string;
@@ -10,24 +21,39 @@ interface TimelineProps {
 
 export const Timeline: React.FC<TimelineProps> = ({ events }) => {
   return (
-    <div className="relative">
+    <MuiTimeline position="right" sx={{ p: 0, m: 0 }}>
       {events.map((event, index) => (
-        <div key={index} className="flex gap-4 pb-8 last:pb-0">
-          <div className="flex flex-col items-center">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+        <MuiTimelineItem
+          key={`${event.status}-${event.date}-${index}`}
+          sx={{
+            '&:before': {
+              display: 'none'
+            },
+            minHeight: index === events.length - 1 ? 'auto' : 60
+          }}
+        >
+          <TimelineSeparator>
+            <TimelineDot color="primary" sx={{ my: 0.5 }} />
             {index !== events.length - 1 && (
-              <div className="w-0.5 h-full bg-gray-200"></div>
+              <TimelineConnector sx={{ height: '100%' }} />
             )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{event.status}</span>
-              <span className="text-sm text-gray-500">{event.date}</span>
-            </div>
-            <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-          </div>
-        </div>
+          </TimelineSeparator>
+
+          <TimelineContent sx={{ py: 0, px: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 500 }}>
+                {event.status}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {event.date}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              {event.description}
+            </Typography>
+          </TimelineContent>
+        </MuiTimelineItem>
       ))}
-    </div>
+    </MuiTimeline>
   );
 };

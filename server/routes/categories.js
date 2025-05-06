@@ -11,6 +11,9 @@ const categoryController = new CategoryController();
 // Get all categories
 router.get("/", asyncHandler(categoryController.getCategories));
 
+// Get category by id
+router.get("/:id", asyncHandler(categoryController.getCategoryById));
+
 // Create new category
 router.post(
   "/",

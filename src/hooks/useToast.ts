@@ -36,7 +36,7 @@ export const useToast = (config?: ToastConfig) => {
       default:
         toast.info(message, options);
     }
-  }, []);
+  }, [defaultConfig]);
 
   return { showToast };
 };

@@ -18,6 +18,7 @@ import stockRoutes from "./routes/stock.js";
 import returnRoutes from "./routes/returns.js";
 import categoriesRoutes from "./routes/categories.js";
 import settingsRoutes from './routes/settings.js';
+import documentRoutes from "./routes/documents.js";
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.use(errorHandler);
 

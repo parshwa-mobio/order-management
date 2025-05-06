@@ -18,6 +18,27 @@ export class CategoryController {
     }
   }
 
+  async getCategoryById(req, res) {
+    try {
+      const category = await Category.findOne({ 
+        _id: req.params.id,
+        isDeleted: false 
+      })
+      .populate("createdBy", "name email")
+      .populate("updatedBy", "name email")
+      .lean();
+
+      if (!category) {
+        return responseHandler.notFound(res, "Category not found");
+      }
+
+      return responseHandler.success(res, category);
+    } catch (error) {
+      logger.error("Failed to fetch category:", error);
+      return responseHandler.error(res, "Failed to fetch category");
+    }
+  }
+
   async createCategory(req, res) {
     try {
       const category = new Category({

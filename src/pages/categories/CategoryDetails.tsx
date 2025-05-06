@@ -1,144 +1,105 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Category } from "../../hooks/useCategories";
-import { useCategories } from "../../hooks/useCategories";
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Container,
+  CircularProgress,
+} from "@mui/material";
+import { Category, useCategories } from "../../hooks/categories/useCategories";
+import { CategoryForm } from "../../components/categories/CategoryForm";
 
 const CategoryDetails = () => {
   const { id } = useParams();
-  const { updateCategory } = useCategories();
-  const [category, setCategory] = useState<Category | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { updateCategory, getCategoryById, category, loading } =
+    useCategories(id);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Omit<Category, "_id">>({
-    name: "",
-    description: "",
-    imageUrl: "",
-  });
 
-  useEffect(() => {
-    const fetchCategory = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`/api/categories/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch category");
-        const data = await res.json();
-        setCategory(data);
-        setForm({
-          name: data.name,
-          description: data.description,
-          imageUrl: data.imageUrl || "",
-        });
-      } catch (err) {
-        setCategory(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategory();
-  }, [id]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: Omit<Category, "_id">) => {
     if (!id) return;
     try {
-      await updateCategory(id, form);
+      await updateCategory(id, formData);
       setEditing(false);
-      // Refresh category data
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch category");
-      const data = await res.json();
-      setCategory(data);
+      await getCategoryById(id);
     } catch (err) {
-      // Handle error
+      console.error("Failed to update category:", err);
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!category) return <div className="p-6">Category not found.</div>;
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!category) {
+    return (
+      <Box p={3}>
+        <Typography color="error">Category not found.</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <div className="p-6">
-      {editing ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Name
-            </label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Image URL
-            </label>
-            <input
-              type="text"
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    <Container maxWidth="md">
+      <Box p={3}>
+        {editing ? (
+          <CategoryForm
+            initialData={{
+              name: category.name,
+              description: category.description,
+              imageUrl: category.imageUrl || "",
+            }}
+            onSubmit={handleSubmit}
+            onCancel={() => setEditing(false)}
+          />
+        ) : (
+          <>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={3}
             >
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              className="inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">{category.name}</h1>
-            <button
-              onClick={() => setEditing(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Edit Category
-            </button>
-          </div>
-          <p className="mb-4">{category.description}</p>
-          {category.imageUrl && (
-            <img
-              src={category.imageUrl}
-              alt={category.name}
-              className="h-32 w-32 object-cover rounded"
-            />
-          )}
-        </>
-      )}
-    </div>
+              <Typography variant="h4" component="h1">
+                {category.name}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setEditing(true)}
+              >
+                Edit Category
+              </Button>
+            </Box>
+            <Typography variant="body1" paragraph>
+              {category.description}
+            </Typography>
+            {category.imageUrl && (
+              <Box
+                component="img"
+                src={category.imageUrl}
+                alt={category.name}
+                sx={{
+                  height: 128,
+                  width: 128,
+                  objectFit: "cover",
+                  borderRadius: 1,
+                }}
+              />
+            )}
+          </>
+        )}
+      </Box>
+    </Container>
   );
 };
 
