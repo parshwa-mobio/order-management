@@ -3,6 +3,7 @@ import { responseHandler } from "../utils/responseHandler.js";
 import { validationResult } from "express-validator";
 import { logger } from "../utils/logger.js";
 import { paginationHelper } from "../utils/pagination.js";
+import { productService } from "../services/productService.js";
 
 export class ProductController {
   constructor() {
@@ -16,50 +17,17 @@ export class ProductController {
     this.getProductCount = this.getProductCount.bind(this);
   }
 
-  // Helper methods
-  _buildSearchQuery(filters) {
-    const query = { isDeleted: false }; // Add this line to exclude deleted products
-    const { search, category, minPrice, maxPrice, status } = filters;
-
-    if (search) {
-      query.$or = [
-        { name: new RegExp(search, "i") },
-        { sku: new RegExp(search, "i") },
-        { description: new RegExp(search, "i") },
-      ];
-    }
-    if (category) query.category = category;
-    if (status) query.status = status;
-    if (minPrice || maxPrice) {
-      query.basePrice = {};
-      if (minPrice) query.basePrice.$gte = Number(minPrice);
-      if (maxPrice) query.basePrice.$lte = Number(maxPrice);
-    }
-
-    return query;
-  }
-
-  // API Methods
   async getProducts(req, res) {
     try {
       const pagination = paginationHelper.getPaginationOptions(req.query);
-      const query = this._buildSearchQuery(req.query);
-
-      const [products, total] = await Promise.all([
-        Product.find(query)
-          .sort({ createdAt: -1 })
-          .skip(pagination.skip)
-          .limit(pagination.limit)
-          .lean(),
-        Product.countDocuments(query),
-      ]);
+      const { products, total } = await productService.getProducts(req.query, pagination);
 
       return responseHandler.success(res, {
         products,
         pagination: paginationHelper.getPaginationData(
           total,
           pagination.page,
-          pagination.limit,
+          pagination.limit
         ),
       });
     } catch (error) {
@@ -75,9 +43,7 @@ export class ProductController {
         return responseHandler.badRequest(res, { errors: errors.array() });
       }
 
-      const product = new Product(req.body);
-      await product.save();
-
+      const product = await productService.createProduct(req.body);
       logger.info("Product created successfully", { sku: product.sku });
       return responseHandler.success(res, product, 201);
     } catch (error) {
@@ -96,12 +62,7 @@ export class ProductController {
         return responseHandler.badRequest(res, { errors: errors.array() });
       }
 
-      const product = await Product.findByIdAndUpdate(
-        req.params.id,
-        { $set: req.body },
-        { new: true, runValidators: true },
-      );
-
+      const product = await productService.updateProduct(req.params.id, req.body);
       if (!product) {
         return responseHandler.notFound(res, "Product not found");
       }
@@ -116,15 +77,7 @@ export class ProductController {
 
   async deleteProduct(req, res) {
     try {
-      const product = await Product.findByIdAndUpdate(
-        req.params.id,
-        {
-          isDeleted: true,
-          deletedAt: new Date(),
-        },
-        { new: true },
-      );
-
+      const product = await productService.deleteProduct(req.params.id);
       if (!product) {
         return responseHandler.notFound(res, "Product not found");
       }
@@ -142,10 +95,7 @@ export class ProductController {
   async getProductMoq(req, res) {
     try {
       const { sku } = req.params;
-      const product = await Product.findOne({ sku })
-        .select("sku name moq distributorMoq")
-        .lean()
-        .cache(60);
+      const product = await productService.getProductBySkuWithMoq(sku);
 
       if (!product) {
         return responseHandler.notFound(res, "Product not found");
@@ -165,34 +115,21 @@ export class ProductController {
 
   async getRecommendations(req, res) {
     try {
-      // Get user's recent orders if authenticated
-      let query = { status: "active" };
-
-      if (req.user) {
-        // Add personalization logic here based on user's order history
-        // This is a simple example - you might want to implement more sophisticated recommendation logic
-        query.category = req.user.preferredCategories;
-      }
-
-      const recommendations = await Product.find(query)
-        .sort("-orderCount") // Assuming we track order count
-        .limit(10)
-        .lean()
-        .cache(300);
+      const recommendations = await productService.getRecommendations(
+        req.user?.id,
+        req.user?.preferredCategories
+      );
 
       return responseHandler.success(res, recommendations);
     } catch (error) {
       logger.error("Failed to fetch product recommendations", error);
-      return responseHandler.error(
-        res,
-        "Failed to fetch product recommendations",
-      );
+      return responseHandler.error(res, "Failed to fetch product recommendations");
     }
   }
 
   async getProductCount(req, res) {
     try {
-      const count = await Product.countDocuments({ status: "active" });
+      const count = await productService.getActiveProductCount();
       return responseHandler.success(res, { count });
     } catch (error) {
       logger.error("Failed to fetch product count", error);

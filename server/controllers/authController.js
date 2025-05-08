@@ -4,12 +4,14 @@ import User from "../models/User.js";
 import { logger } from "../utils/logger.js";
 import { responseHandler } from "../utils/responseHandler.js";
 import { verifyMfaToken } from "../utils/mfa.js";
+import { authService } from "../services/authService.js";
 
 export class AuthController {
   constructor({
     userModel = User,
     loggerUtil = logger,
     responseUtil = responseHandler,
+    auth = authService
   } = {}) {
     this.User = userModel;
     this.logger = loggerUtil;

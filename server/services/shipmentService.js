@@ -1,5 +1,7 @@
 import axios from "axios";
 import { logger } from "../utils/logger.js";
+import Order from "../models/Order.js";
+import { DB_OPERATIONS, performDbOperation } from "../utils/db.utils.js";
 
 class ShipmentService {
   constructor() {
@@ -13,6 +15,7 @@ class ShipmentService {
     });
   }
 
+  // API Operations
   async getShipmentStatus(trackingNumber) {
     try {
       // Example: GET /shipment/status/:trackingNumber
@@ -26,7 +29,7 @@ class ShipmentService {
     }
   }
 
-  async createShipment({ orderId, carrier, service, address, items }) {
+  async createShipmentAPI({ orderId, carrier, service, address, items }) {
     try {
       // Example: POST /shipment/create
       const { data } = await this.client.post("/shipment/create", {
@@ -41,6 +44,44 @@ class ShipmentService {
       logger.error("Shipment createShipment error", error);
       throw new Error("Failed to create shipment");
     }
+  }
+
+  // Database Operations
+  async findShipmentByOrderId(orderId) {
+    return performDbOperation(
+      Order,
+      DB_OPERATIONS.FIND_BY_ID,
+      orderId,
+      {},
+      { select: "shipmentDetails status trackingNumber carrier", lean: true }
+    );
+  }
+
+  async updateShipmentStatus(orderId, status) {
+    return performDbOperation(
+      Order,
+      DB_OPERATIONS.FIND_BY_ID_AND_UPDATE,
+      orderId,
+      { status, "shipmentDetails.lastUpdate": new Date() },
+      { new: true }
+    );
+  }
+
+  async createShipment(orderId, shipmentData) {
+    return performDbOperation(
+      Order,
+      DB_OPERATIONS.FIND_BY_ID_AND_UPDATE,
+      orderId,
+      {
+        shipmentDetails: {
+          ...shipmentData,
+          createdAt: new Date(),
+          lastUpdate: new Date()
+        },
+        status: "shipped"
+      },
+      { new: true }
+    );
   }
 }
 

@@ -147,6 +147,30 @@ orderSchema.pre("save", async function (next) {
 // Remove the duplicate schema.index() call
 // orderSchema.index({ orderNumber: 1 }, { unique: true, sparse: true }); // Remove this line
 
+orderSchema.statics.findByFilters = function(filters) {
+  const query = { isDeleted: false };
+  
+  if (filters.orderNumber) {
+    query.orderNumber = new RegExp(filters.orderNumber, 'i');
+  }
+  
+  if (filters.status) {
+    query.status = filters.status;
+  }
+  
+  if (filters.dateFrom || filters.dateTo) {
+    query.createdAt = {};
+    if (filters.dateFrom) {
+      query.createdAt.$gte = new Date(filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      query.createdAt.$lte = new Date(filters.dateTo);
+    }
+  }
+    
+  return this.find(query);
+};
+
 const Order = mongoose.model("Order", orderSchema);
 
 export default Order;  // This is a default export

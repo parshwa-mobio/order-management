@@ -1,8 +1,8 @@
 import express from "express";
-import OrderController from "../controllers/OrderController.js";
+import { OrderController } from "../controllers/OrderController.js";
+import authMiddleware from "../middleware/auth.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { cache } from "../utils/cache.js";
-import authMiddleware from "../middleware/auth.js";
 import multer from "multer";
 import { orderValidation } from "../validation/orderValidation.js";
 
@@ -13,8 +13,8 @@ const upload = multer({ dest: "uploads/" });
 // Get all orders
 router.get(
   "/",
-  [authMiddleware, cache(300)],
-  asyncHandler(orderController.getOrders),
+  [authMiddleware, cache(60)],
+  asyncHandler(orderController.getAll.bind(orderController))
 );
 
 // Get single order

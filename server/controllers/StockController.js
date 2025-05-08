@@ -1,6 +1,6 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
-import Product from "../models/Product.js";
+import { stockService } from "../services/stockService.js";
 
 export class StockController {
   async getLowStock(req, res) {
@@ -11,14 +11,7 @@ export class StockController {
         return responseHandler.forbidden(res, "Unauthorized access");
       }
 
-      const lowStockProducts = await Product.find({
-        stockLevel: { $lte: "$reorderPoint" },
-        status: "active",
-      })
-        .select("name sku stockLevel reorderPoint category")
-        .sort("stockLevel")
-        .lean();
-
+      const lowStockProducts = await stockService.getLowStockProducts();
       return responseHandler.success(res, lowStockProducts);
     } catch (error) {
       logger.error("Failed to fetch low stock products:", error);

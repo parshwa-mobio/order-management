@@ -1,6 +1,5 @@
-import { Bell, Menu, Search } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   AppBar,
@@ -13,21 +12,58 @@ import {
   MenuItem,
   Box,
   alpha,
-  useTheme,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import {
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  Notifications as NotificationsIcon,
+} from "@mui/icons-material";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
+const SearchBox = () => (
+  <Box sx={{
+    position: 'relative',
+    borderRadius: 1,
+    bgcolor: (theme) => alpha(theme.palette.common.black, 0.05),
+    '&:hover': {
+      bgcolor: (theme) => alpha(theme.palette.common.black, 0.08),
+    },
+    mr: 2,
+    ml: 0,
+    width: { xs: '100%', sm: 'auto' },
+    flexGrow: 1
+  }}>
+    <Box sx={{
+      padding: theme => theme.spacing(0, 2),
+      height: '100%',
+      position: 'absolute',
+      pointerEvents: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      <SearchIcon />
+    </Box>
+    <InputBase
+      placeholder="Search…"
+      sx={{
+        color: 'inherit',
+        padding: theme => theme.spacing(1, 1, 1, 0),
+        paddingLeft: theme => `calc(1em + ${theme.spacing(4)})`,
+        transition: theme => theme.transitions.create('width'),
+        width: '100%',
+      }}
+    />
+  </Box>
+);
+
 const Header = ({ setSidebarOpen }: HeaderProps) => {
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
-  const theme = useTheme();
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -67,40 +103,7 @@ const Header = ({ setSidebarOpen }: HeaderProps) => {
           <MenuIcon />
         </IconButton>
 
-        <Box sx={{
-          position: 'relative',
-          borderRadius: 1,
-          bgcolor: (theme) => alpha(theme.palette.common.black, 0.05),
-          '&:hover': {
-            bgcolor: (theme) => alpha(theme.palette.common.black, 0.08),
-          },
-          mr: 2,
-          ml: 0,
-          width: { xs: '100%', sm: 'auto' },
-          flexGrow: 1
-        }}>
-          <Box sx={{
-            padding: theme => theme.spacing(0, 2),
-            height: '100%',
-            position: 'absolute',
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <SearchIcon />
-          </Box>
-          <InputBase
-            placeholder="Search…"
-            sx={{
-              color: 'inherit',
-              padding: theme => theme.spacing(1, 1, 1, 0),
-              paddingLeft: theme => `calc(1em + ${theme.spacing(4)})`,
-              transition: theme => theme.transitions.create('width'),
-              width: '100%',
-            }}
-          />
-        </Box>
+        <SearchBox />
 
         <Box sx={{ display: 'flex', ml: 'auto' }}>
           <IconButton

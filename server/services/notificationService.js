@@ -5,6 +5,7 @@ import { readFile } from "fs";
 import path from "path";
 import Notification from "../models/Notification.js";
 import { logger } from "../utils/logger.js";
+import { performDbOperation, DB_OPERATIONS } from "../utils/db.utils.js";
 
 const readFileAsync = promisify(readFile);
 
@@ -23,21 +24,21 @@ class NotificationService {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-        pool: true, // Use pooled connections
+        pool: true,
         maxConnections: 5,
         maxMessages: 100,
         rateDelta: 1000,
-        rateLimit: 5, // Limit to 5 emails per second
+        rateLimit: 5,
       });
 
-      // Verify connection configuration on startup
       this.transporter
         .verify()
-        .then(() => console.log("SMTP connection verified"))
-        .catch((err) => console.error("SMTP verification failed:", err));
+        .then(() => logger.info("SMTP connection verified"))
+        .catch((err) => logger.error("SMTP verification failed:", err));
     }
   }
 
+  // Email related methods
   async sendEmail(to, subject, html, text) {
     try {
       if (this.emailProvider === "sendgrid") {
@@ -79,7 +80,6 @@ class NotificationService {
       );
       let template = await readFileAsync(templatePath, "utf8");
 
-      // Replace template variables
       Object.entries(data).forEach(([key, value]) => {
         template = template.replace(new RegExp(`{{${key}}}`, "g"), value);
       });
@@ -131,24 +131,52 @@ class NotificationService {
     );
   }
 
+  // Notification DB operations
+  async getNotifications(userId, options = {}) {
+    const { unreadOnly, limit = 50, type } = options;
+    const query = { userId };
+
+    if (unreadOnly === "true") {
+      query.read = false;
+    }
+    
+    if (type) {
+      query.type = type;
+    }
+
+    return performDbOperation(
+      Notification,
+      DB_OPERATIONS.FIND,
+      query,
+      null,
+      {
+        sort: "-createdAt",
+        limit: Number(limit),
+        lean: true
+      }
+    );
+  }
+
   async createNotification(data) {
     try {
-      const notification = new Notification({
-        user: data.userId,
-        type: data.type,
-        message: data.message,
-        priority: data.priority || "low",
-      });
+      const notification = await performDbOperation(
+        Notification,
+        DB_OPERATIONS.CREATE,
+        {
+          user: data.userId,
+          type: data.type,
+          message: data.message,
+          priority: data.priority || "low",
+          read: false
+        }
+      );
 
-      await notification.save();
-
-      // Send email for high priority notifications
       if (data.priority === "high" && data.email) {
         await this.sendEmail(
           data.email,
           "High Priority Notification",
           data.message,
-          data.message,
+          data.message
         );
       }
 
@@ -159,41 +187,51 @@ class NotificationService {
     }
   }
 
-  async getUserNotifications(userId, query = {}) {
-    const filter = { user: userId };
-
-    if (query.type) filter.type = query.type;
-    if (query.read !== undefined) filter.read = query.read;
-
-    return Notification.find(filter).sort({ createdAt: -1 }).lean();
+  async updateNotification(id, userId, updates) {
+    return await Notification.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        $set: { 
+          ...updates,
+          updatedAt: new Date()
+        } 
+      },
+      { new: true }
+    );
   }
 
-  async markAsRead(notificationId, userId) {
-    return Notification.findOneAndUpdate(
-      { _id: notificationId, user: userId },
-      {
-        read: true,
-        readAt: new Date(),
+  async deleteNotification(id, userId) {
+    return await Notification.findOneAndDelete({
+      _id: id,
+      userId
+    });
+  }
+
+  async markAsRead(id, userId) {
+    return await Notification.findOneAndUpdate(
+      { _id: id, userId },
+      { 
+        $set: { 
+          read: true,
+          readAt: new Date(),
+          updatedAt: new Date()
+        } 
       },
-      { new: true },
+      { new: true }
     );
   }
 
   async markAllAsRead(userId) {
-    return Notification.updateMany(
-      { user: userId, read: false },
-      {
-        read: true,
-        readAt: new Date(),
-      },
+    return await Notification.updateMany(
+      { userId, read: false },
+      { 
+        $set: { 
+          read: true,
+          readAt: new Date(),
+          updatedAt: new Date()
+        } 
+      }
     );
-  }
-
-  async deleteNotification(notificationId, userId) {
-    return Notification.findOneAndDelete({
-      _id: notificationId,
-      user: userId,
-    });
   }
 }
 

@@ -1,8 +1,8 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { validationResult } from "express-validator";
 import { logger } from "../utils/logger.js";
-import { paginationHelper } from "../utils/pagination.js"; // Fixed import path
-import User from "../models/User.js";
+import { paginationHelper } from "../utils/pagination.js";
+import { userService } from "../services/userService.js";
 
 export class UserController {
   // Private helper methods
@@ -50,15 +50,7 @@ export class UserController {
       const pagination = paginationHelper.getPaginationOptions(req.query);
       const query = this._buildSearchQuery(role, search);
 
-      const [users, total] = await Promise.all([
-        User.find(query)
-          .select("-password -mfaSecret -loginAttempts")
-          .sort({ createdAt: -1 })
-          .skip(pagination.skip)
-          .limit(pagination.limit)
-          .lean(),
-        User.countDocuments(query),
-      ]);
+      const { users, total } = await userService.findUsers(query, pagination);
 
       return responseHandler.success(res, {
         users,
@@ -78,9 +70,7 @@ export class UserController {
     try {
       this._validateRequest(req);
 
-      const user = await User.findById(req.params.id)
-        .select("-password -mfaSecret -loginAttempts")
-        .lean();
+      const user = await userService.findById(req.params.id);
 
       if (!user) {
         return responseHandler.notFound(res, "User not found");
@@ -102,9 +92,7 @@ export class UserController {
 
   async getCurrentUser(req, res) {
     try {
-      const user = await User.findById(req.user.id)
-        .select("-password -mfaSecret -loginAttempts")
-        .lean();
+      const user = await userService.findById(req.user.id);
 
       if (!user) {
         return responseHandler.notFound(res, "User not found");
@@ -122,11 +110,7 @@ export class UserController {
       this._validateRequest(req);
 
       const updates = this._sanitizeUpdates(req.body);
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        { $set: updates },
-        { new: true, runValidators: true }
-      ).select("-password -mfaSecret -loginAttempts");
+      const user = await userService.updateUser(req.user.id, updates);
 
       if (!user) {
         return responseHandler.notFound(res, "User not found");
@@ -146,20 +130,17 @@ export class UserController {
     try {
       this._validateRequest(req);
 
-      const user = await User.findById(req.user.id);
-      if (!user) {
-        return responseHandler.notFound(res, "User not found");
+      const result = await userService.changePassword(
+        req.user.id,
+        req.body.currentPassword,
+        req.body.newPassword
+      );
+
+      if (!result.success) {
+        return responseHandler.badRequest(res, result.message);
       }
 
-      const isMatch = await user.comparePassword(req.body.currentPassword);
-      if (!isMatch) {
-        return responseHandler.badRequest(res, "Current password is incorrect");
-      }
-
-      user.password = req.body.newPassword;
-      await user.save();
-
-      logger.info("Password changed successfully", { userId: user.id });
+      logger.info("Password changed successfully", { userId: req.user.id });
       return responseHandler.success(res, {
         message: "Password updated successfully",
       });
@@ -176,10 +157,9 @@ export class UserController {
     try {
       this._validateRequest(req);
 
-      const user = new User(req.body);
-      await user.save();
-
+      const user = await userService.createUser(req.body);
       const userResponse = this._removeSensitiveData(user);
+      
       logger.info("User created successfully", { userId: user.id });
       return responseHandler.success(res, userResponse, 201);
     } catch (error) {
@@ -196,21 +176,7 @@ export class UserController {
 
   async getRolesSummary(req, res) {
     try {
-      const roleSummary = await User.aggregate([
-        {
-          $group: {
-            _id: "$role",
-            count: { $sum: 1 },
-          },
-        },
-        {
-          $project: {
-            role: "$_id",
-            count: 1,
-            _id: 0,
-          },
-        },
-      ]);
+      const roleSummary = await userService.getRolesSummary();
 
       return responseHandler.success(res, {
         summary: roleSummary,
@@ -226,7 +192,7 @@ export class UserController {
     try {
       this._validateRequest(req);
 
-      const user = await User.findById(req.params.id);
+      const user = await userService.findById(req.params.id);
       if (!user) {
         return responseHandler.notFound(res, "User not found");
       }
@@ -236,11 +202,7 @@ export class UserController {
         return responseHandler.forbidden(res, "Cannot delete your own account");
       }
 
-      await User.findByIdAndUpdate(req.params.id, {
-        isDeleted: true,
-        deletedAt: new Date(),
-        deletedBy: req.user.id,
-      });
+      await userService.softDeleteUser(req.params.id, req.user.id);
 
       logger.info("User soft deleted successfully", { userId: user.id });
       return responseHandler.success(res, {
@@ -259,7 +221,7 @@ export class UserController {
     try {
       this._validateRequest(req);
 
-      const user = await User.findById(req.params.id);
+      const user = await userService.findById(req.params.id);
       if (!user) {
         return responseHandler.notFound(res, "User not found");
       }
@@ -268,12 +230,7 @@ export class UserController {
         return responseHandler.badRequest(res, "User is not deleted");
       }
 
-      await User.findByIdAndUpdate(req.params.id, {
-        isDeleted: false,
-        deletedAt: null,
-        deletedBy: null,
-        $set: { updatedAt: new Date() },
-      });
+      await userService.restoreUser(req.params.id);
 
       logger.info("User restored successfully", { userId: user.id });
       return responseHandler.success(res, {

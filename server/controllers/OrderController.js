@@ -1,109 +1,30 @@
-import Order from "../models/Order.js";
-import { BaseController } from "./BaseController.js";
+
 import { responseHandler } from "../utils/responseHandler.js";
 import { paginationHelper } from "../utils/pagination.js";
 import { validationResult } from "express-validator";
-import moment from "moment-timezone";
+import { orderService } from "../services/orderService.js";
+import { logger } from "../utils/logger.js";
 
-export default class OrderController extends BaseController {
+export class OrderController {
   constructor() {
-    super(Order);
+    // Bind all methods to maintain 'this' context
+    this.getAll = this.getAll.bind(this);
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
-
-  async createOrder(req, res) {
+  // Base CRUD operations
+  async getAll(req, res) {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return responseHandler.badRequest(res, { errors: errors.array() });
-      }
-
-      const timezone = req.headers["x-timezone"] || "UTC";
-
-      // Validate order items
-      if (!req.body.orderItems?.length) {
-        return responseHandler.badRequest(res, {
-          message: "Order must contain at least one item",
-        });
-      }
-
-      const newOrder = new Order({
-        ...req.body,
-        createdBy: req.user.id,
-        createdAt: new Date(),
-      });
-
-      await newOrder.save();
-      await newOrder.populate([
-        { path: "orderItems.product", select: "name sku price" },
-        { path: "createdBy", select: "name email" },
-      ]);
-
-      return responseHandler.success(res, newOrder, 201);
-    } catch (error) {
-      console.error("Error creating order:", error);
-      return responseHandler.error(res, "Failed to create order");
-    }
-  }
-
-  async updateOrder(req, res) {
-    try {
-      const { id } = req.params;
-      const order = await Order.findById(id);
-
-      if (!order) {
-        return responseHandler.notFound(res, "Order not found");
-      }
-
-      if (order.status !== "draft") {
-        return responseHandler.forbidden(
-          res,
-          "Only draft orders can be edited"
-        );
-      }
-
-      const updatedOrder = await Order.findByIdAndUpdate(
-        id,
-        { ...req.body, updatedAt: new Date() },
-        { new: true }
-      ).populate("items.product");
-
-      return responseHandler.success(res, updatedOrder);
-    } catch (error) {
-      console.error("Error updating order:", error);
-      return responseHandler.error(res, "Failed to update order");
-    }
-  }
-
-  async getOrders(req, res) {
-    try {
-      const { status, dateFrom, dateTo } = req.query;
-      const timezone = req.headers["x-timezone"] || "UTC";
-      const query = {};
-
-      if (status) query.status = status;
-      if (dateFrom || dateTo) {
-        query.createdAt = {};
-        if (dateFrom)
-          query.createdAt.$gte = moment.tz(dateFrom, timezone).utc().toDate();
-        if (dateTo)
-          query.createdAt.$lte = moment.tz(dateTo, timezone).utc().toDate();
-      }
-
       const pagination = paginationHelper.getPaginationOptions(req.query);
-      const [orders, total] = await Promise.all([
-        Order.find(query)
-          .sort("-createdAt")
-          .populate({
-            path: "user",
-            select: "name email",
-            strictPopulate: false,
-          })
-          .populate("orderItems.product", "name sku price")
-          .skip(pagination.skip)
-          .limit(pagination.limit)
-          .lean(),
-        Order.countDocuments(query),
-      ]);
+      const filters = {
+        orderNumber: req.query.orderNumber,
+        dateFrom: req.query.from,
+        dateTo: req.query.to,
+        status: req.query.status
+      };
+      const { orders, total } = await orderService.getOrders(filters, pagination);
 
       return responseHandler.success(res, {
         orders,
@@ -114,8 +35,88 @@ export default class OrderController extends BaseController {
         ),
       });
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      logger.error("Error fetching orders:", error);
       return responseHandler.error(res, "Failed to fetch orders");
+    }
+  }
+
+  async getById(req, res) {
+    try {
+      const order = await orderService.getOrderById(req.params.id);
+
+      if (!order) {
+        return responseHandler.notFound(res, "Order not found");
+      }
+
+      return responseHandler.success(res, order);
+    } catch (error) {
+      logger.error("Error fetching order:", error);
+      return responseHandler.error(res, "Failed to fetch order");
+    }
+  }
+
+  async create(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return responseHandler.badRequest(res, { errors: errors.array() });
+      }
+
+      if (!req.body.orderItems?.length) {
+        return responseHandler.badRequest(res, {
+          message: "Order must contain at least one item",
+        });
+      }
+
+      const order = await orderService.createOrder(req.body, req.user.id);
+      return responseHandler.success(res, order, 201);
+    } catch (error) {
+      logger.error("Error creating order:", error);
+      return responseHandler.error(res, "Failed to create order");
+    }
+  }
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const order = await orderService.findOrderById(id);
+
+      if (!order) {
+        return responseHandler.notFound(res, "Order not found");
+      }
+
+      if (order.status !== "draft") {
+        return responseHandler.forbidden(res, "Only draft orders can be edited");
+      }
+
+      const updatedOrder = await orderService.updateOrder(id, req.body);
+      return responseHandler.success(res, updatedOrder);
+    } catch (error) {
+      logger.error("Error updating order:", error);
+      return responseHandler.error(res, "Failed to update order");
+    }
+  }
+
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const order = await orderService.findOrderById(id);
+
+      if (!order) {
+        return responseHandler.notFound(res, "Order not found");
+      }
+
+      if (order.status !== "draft") {
+        return responseHandler.forbidden(res, "Only draft orders can be cancelled");
+      }
+
+      await orderService.softDeleteOrder(id, req.user.id);
+      return responseHandler.success(res, {
+        message: "Order deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Error deleting order:", error);
+      return responseHandler.error(res, "Failed to delete order");
     }
   }
 
@@ -124,21 +125,7 @@ export default class OrderController extends BaseController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const order = await Order.findByIdAndUpdate(
-        id,
-        {
-          status,
-          updatedAt: new Date(),
-          $push: {
-            statusHistory: {
-              status,
-              updatedBy: req.user.id,
-              updatedAt: new Date(),
-            },
-          },
-        },
-        { new: true }
-      ).populate("items.product");
+      const order = await orderService.updateOrderStatus(id, status, req.user.id);
 
       if (!order) {
         return responseHandler.notFound(res);
@@ -146,118 +133,23 @@ export default class OrderController extends BaseController {
 
       return responseHandler.success(res, order);
     } catch (error) {
-      console.error("Error updating order status:", error);
+      logger.error("Error updating order status:", error);
       return responseHandler.error(res, "Failed to update order status");
-    }
-  }
-
-  async getOrderById(req, res) {
-    try {
-      const order = await Order.findById(req.params.id)
-        .populate({
-          path: "user",
-          strictPopulate: false,
-        })
-        .populate("orderItems.product", "name sku price")
-        .lean();
-
-      if (!order) {
-        return responseHandler.notFound(res, "Order not found");
-      }
-
-      return responseHandler.success(res, order);
-    } catch (error) {
-      console.error("Error fetching order:", error);
-      return responseHandler.error(res, "Failed to fetch order");
-    }
-  }
-
-  async updateOrder(req, res) {
-    try {
-      const { id } = req.params;
-      const order = await Order.findById(id);
-
-      if (!order) {
-        return responseHandler.notFound(res, "Order not found");
-      }
-
-      if (order.status !== "draft") {
-        return responseHandler.forbidden(
-          res,
-          "Only draft orders can be edited"
-        );
-      }
-
-      const updatedOrder = await Order.findByIdAndUpdate(
-        id,
-        { ...req.body, updatedAt: new Date() },
-        { new: true }
-      ).populate("items.product");
-
-      return responseHandler.success(res, updatedOrder);
-    } catch (error) {
-      console.error("Error updating order:", error);
-      return responseHandler.error(res, "Failed to update order");
-    }
-  }
-
-  async deleteOrder(req, res) {
-    try {
-      const { id } = req.params;
-      const order = await Order.findById(id);
-
-      if (!order) {
-        return responseHandler.notFound(res, "Order not found");
-      }
-
-      if (order.status !== "draft") {
-        return responseHandler.forbidden(
-          res,
-          "Only draft orders can be cancelled"
-        );
-      }
-
-      // Update to use soft delete
-      await Order.findByIdAndUpdate(id, {
-        isDeleted: true,
-        deletedAt: new Date(),
-        deletedBy: req.user.id,
-      });
-
-      return responseHandler.success(res, {
-        message: "Order deleted successfully",
-      });
-    } catch (error) {
-      console.error("Error deleting order:", error);
-      return responseHandler.error(res, "Failed to delete order");
     }
   }
 
   async cloneOrder(req, res) {
     try {
       const { id } = req.params;
-      const sourceOrder = await Order.findById(id).populate(
-        "orderItems.product",
-        "name sku price"
-      );
+      const newOrder = await orderService.cloneOrder(id, req.user.id);
 
-      if (!sourceOrder) {
+      if (!newOrder) {
         return responseHandler.notFound(res, "Source order not found");
       }
 
-      const newOrder = new Order({
-        ...sourceOrder.toObject(),
-        _id: undefined,
-        status: "draft",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        user: req.user.id,
-      });
-
-      await newOrder.save();
       return responseHandler.success(res, newOrder, 201);
     } catch (error) {
-      console.error("Error cloning order:", error);
+      logger.error("Error cloning order:", error);
       return responseHandler.error(res, "Failed to clone order");
     }
   }
@@ -268,29 +160,14 @@ export default class OrderController extends BaseController {
         return responseHandler.badRequest(res, "No file uploaded");
       }
 
-      // Process Excel file and create orders
       const orders = await this._processExcelFile(req.file);
-      const createdOrders = await Order.insertMany(
-        orders.map((order) => ({
-          ...order,
-          user: req.user.id,
-          status: "pending",
-        }))
-      );
+      const createdOrders = await orderService.createBulkOrders(orders, req.user.id);
 
       return responseHandler.success(res, createdOrders, 201);
     } catch (error) {
-      console.error("Error processing bulk orders:", error);
+      logger.error("Error processing bulk orders:", error);
       return responseHandler.error(res, "Failed to process bulk orders");
     }
-  }
-
-  // Helper method to process Excel file
-  async _processExcelFile(file) {
-    // Implementation for Excel processing
-    // This would use a library like xlsx to process the Excel file
-    // and return an array of order objects
-    return [];
   }
 
   async getOrderSummary(req, res) {
@@ -301,34 +178,18 @@ export default class OrderController extends BaseController {
         return responseHandler.badRequest(res, "Invalid summary type");
       }
 
-      const [
-        totalOrders,
-        pendingOrders,
-        completedOrders,
-        activeOrders,
-        revenue,
-      ] = await Promise.all([
-        Order.countDocuments(),
-        Order.countDocuments({ status: "pending" }),
-        Order.countDocuments({ status: "completed" }),
-        Order.countDocuments({ status: { $in: ["pending", "processing"] } }),
-        Order.aggregate([
-          { $match: { status: "completed" } },
-          { $group: { _id: null, total: { $sum: "$totalAmount" } } },
-        ]),
-      ]);
-
-      return responseHandler.success(res, {
-        total: totalOrders,
-        pending: pendingOrders,
-        completed: completedOrders,
-        active: activeOrders,
-        revenue: revenue[0]?.total || 0,
-        orderGrowth: "0%", // Implement growth calculation if needed
-      });
+      const summaryData = await orderService.getOrderSummary();
+      return responseHandler.success(res, summaryData);
     } catch (error) {
       logger.error("Error fetching order summary:", error);
       return responseHandler.error(res, "Failed to fetch order summary");
     }
   }
+
+  // Private helper methods
+  async _processExcelFile(file) {
+    return [];
+  }
 }
+
+export default OrderController;

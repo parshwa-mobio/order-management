@@ -1,39 +1,29 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
-import Order  from "../models/Order.js";
-import { dpWorldService } from "../services/dpWorldService.js";
+import Order from "../models/Order.js";
 import { shipmentService } from "../services/shipmentService.js";
+import { dpWorldApiService } from "../services/dpWorldApiService.js";
 
 export class ShipmentController {
   async getTracking(req, res) {
     try {
       const { orderId } = req.params;
+      const shipment = await shipmentService.findByOrderId(orderId);
 
-      const order = await Order.findById(orderId)
-        .select("trackingNumber carrier status shipmentDetails")
-        .lean();
-
-      if (!order) {
-        return responseHandler.notFound(res, "Order not found");
+      if (!shipment) {
+        return responseHandler.notFound(res, "Shipment not found");
       }
 
-      const trackingNumber =
-        order.shipmentDetails?.trackingNumber || order.trackingNumber;
-      const trackingInfo = await dpWorldService.getTrackingInfo(trackingNumber);
+      const trackingInfo = await dpWorldApiService.getTrackingInfo(
+        shipment.trackingNumber
+      );
 
-      // Update order status if needed
-      if (trackingInfo.status && trackingInfo.status !== order.status) {
-        await Order.findByIdAndUpdate(orderId, {
-          status: trackingInfo.status,
-          "shipmentDetails.lastUpdate": new Date(),
-        });
+      if (trackingInfo.status !== shipment.status) {
+        await shipmentService.updateStatus(shipment._id, trackingInfo.status);
       }
 
       return responseHandler.success(res, {
-        orderId,
-        trackingNumber,
-        carrier: order.shipmentDetails?.carrier || order.carrier,
-        status: trackingInfo.status || order.status,
+        ...shipment,
         tracking: trackingInfo,
       });
     } catch (error) {
@@ -57,12 +47,12 @@ export class ShipmentController {
       if (!order.shipmentDetails?.trackingNumber) {
         return responseHandler.badRequest(
           res,
-          "No shipment created for this order",
+          "No shipment created for this order"
         );
       }
 
       const shipmentStatus = await shipmentService.getShipmentStatus(
-        order.shipmentDetails.trackingNumber,
+        order.shipmentDetails.trackingNumber
       );
 
       // Update order status if needed
@@ -93,7 +83,7 @@ export class ShipmentController {
       if (order.shipmentDetails?.trackingNumber) {
         return responseHandler.badRequest(
           res,
-          "Shipment already exists for this order",
+          "Shipment already exists for this order"
         );
       }
 
@@ -143,7 +133,7 @@ export class ShipmentController {
         cargoTracking: order.cargoTracking || null,
         estimatedDelivery: order.estimatedDelivery,
         actualDelivery: order.actualDelivery || null,
-        carrier: order.carrier || "Default Carrier"
+        carrier: order.carrier || "Default Carrier",
       };
 
       return responseHandler.success(res, shipment);

@@ -1,13 +1,11 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
-import User from "../models/User.js";
+import { settingsService } from "../services/settingsService.js";
 
 export class SettingsController {
   async getSettings(req, res) {
     try {
-      const user = await User.findById(req.user.id)
-        .select('settings')
-        .lean();
+      const user = await settingsService.getUserSettings(req.user.id);
 
       if (!user) {
         return responseHandler.notFound(res, 'User not found');
@@ -22,11 +20,7 @@ export class SettingsController {
 
   async updateSettings(req, res) {
     try {
-      const user = await User.findByIdAndUpdate(
-        req.user.id,
-        { $set: { settings: req.body } },
-        { new: true }
-      ).select('settings');
+      const user = await settingsService.updateUserSettings(req.user.id, req.body);
 
       if (!user) {
         return responseHandler.notFound(res, 'User not found');

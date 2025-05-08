@@ -1,16 +1,11 @@
-import Category from "../models/Category.js";
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
+import { categoryService } from "../services/categoryService.js";
 
 export class CategoryController {
   async getCategories(req, res) {
     try {
-      const categories = await Category.find({ isDeleted: false })
-        .populate("createdBy", "name email")
-        .populate("updatedBy", "name email")
-        .sort("name")
-        .lean();
-
+      const categories = await categoryService.findCategories();
       return responseHandler.success(res, categories);
     } catch (error) {
       logger.error("Failed to fetch categories:", error);
@@ -20,13 +15,7 @@ export class CategoryController {
 
   async getCategoryById(req, res) {
     try {
-      const category = await Category.findOne({ 
-        _id: req.params.id,
-        isDeleted: false 
-      })
-      .populate("createdBy", "name email")
-      .populate("updatedBy", "name email")
-      .lean();
+      const category = await categoryService.findById(req.params.id);
 
       if (!category) {
         return responseHandler.notFound(res, "Category not found");
@@ -41,12 +30,7 @@ export class CategoryController {
 
   async createCategory(req, res) {
     try {
-      const category = new Category({
-        ...req.body,
-        createdBy: req.user.id,
-      });
-      await category.save();
-
+      const category = await categoryService.createCategory(req.body, req.user.id);
       logger.info("Category created successfully", { name: category.name });
       return responseHandler.success(res, category, 201);
     } catch (error) {
@@ -60,17 +44,11 @@ export class CategoryController {
 
   async deleteCategory(req, res) {
     try {
-      const category = await Category.findById(req.params.id);
+      const category = await categoryService.deleteCategory(req.params.id, req.user.id);
 
       if (!category) {
         return responseHandler.notFound(res, "Category not found");
       }
-
-      // Soft delete
-      category.isDeleted = true;
-      category.deletedAt = new Date();
-      category.deletedBy = req.user.id;
-      await category.save();
 
       logger.info("Category deleted successfully", { name: category.name });
       return responseHandler.success(res, {
@@ -84,17 +62,11 @@ export class CategoryController {
 
   async updateCategory(req, res) {
     try {
-      const category = await Category.findById(req.params.id);
+      const category = await categoryService.updateCategory(req.params.id, req.body, req.user.id);
 
       if (!category) {
         return responseHandler.notFound(res, "Category not found");
       }
-
-      Object.assign(category, req.body);
-      category.updatedBy = req.user.id;
-      category.updatedAt = new Date();
-
-      await category.save();
 
       logger.info("Category updated successfully", { name: category.name });
       return responseHandler.success(res, category);

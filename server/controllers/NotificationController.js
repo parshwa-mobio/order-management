@@ -1,26 +1,22 @@
 import { responseHandler } from "../utils/responseHandler.js";
 import { logger } from "../utils/logger.js";
-import Notification from "../models/Notification.js";
+import { notificationService } from "../services/notificationService.js";
 
 export class NotificationController {
+  constructor() {
+    // Bind all methods to the instance
+    this.getNotifications = this.getNotifications.bind(this);
+    this.getNotificationById = this.getNotificationById.bind(this);
+    this.createNotification = this.createNotification.bind(this);
+    this.updateNotification = this.updateNotification.bind(this);
+    this.deleteNotification = this.deleteNotification.bind(this);
+    this.markAsRead = this.markAsRead.bind(this);
+    this.markAllAsRead = this.markAllAsRead.bind(this);
+  }
+
   async getNotifications(req, res) {
     try {
-      const { unreadOnly, limit = 50, type } = req.query;
-      const query = { userId: req.user.id };
-
-      if (unreadOnly === "true") {
-        query.read = false;
-      }
-      
-      if (type) {
-        query.type = type;
-      }
-
-      const notifications = await Notification.find(query)
-        .sort("-createdAt")
-        .limit(Number(limit))
-        .lean();
-
+      const notifications = await notificationService.getNotifications(req.user.id, req.query);
       return responseHandler.success(res, notifications);
     } catch (error) {
       logger.error("Failed to fetch notifications:", error);
@@ -30,10 +26,7 @@ export class NotificationController {
 
   async getNotificationById(req, res) {
     try {
-      const notification = await Notification.findOne({
-        _id: req.params.id,
-        userId: req.user.id
-      }).lean();
+      const notification = await notificationService.getNotificationById(req.params.id, req.user.id);
 
       if (!notification) {
         return responseHandler.notFound(res, "Notification not found");
@@ -48,19 +41,7 @@ export class NotificationController {
 
   async createNotification(req, res) {
     try {
-      const { userId, type, title, message, relatedId, role } = req.body;
-
-      const notification = new Notification({
-        userId,
-        type,
-        title,
-        message,
-        relatedId,
-        role,
-        read: false,
-      });
-
-      await notification.save();
+      const notification = await notificationService.createNotification(req.body);
       return responseHandler.success(res, notification, 201);
     } catch (error) {
       logger.error("Failed to create notification:", error);
@@ -70,15 +51,10 @@ export class NotificationController {
 
   async updateNotification(req, res) {
     try {
-      const notification = await Notification.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user.id },
-        { 
-          $set: { 
-            ...req.body,
-            updatedAt: new Date()
-          } 
-        },
-        { new: true }
+      const notification = await notificationService.updateNotification(
+        req.params.id,
+        req.user.id,
+        req.body
       );
 
       if (!notification) {
@@ -94,10 +70,7 @@ export class NotificationController {
 
   async deleteNotification(req, res) {
     try {
-      const notification = await Notification.findOneAndDelete({
-        _id: req.params.id,
-        userId: req.user.id
-      });
+      const notification = await notificationService.deleteNotification(req.params.id, req.user.id);
 
       if (!notification) {
         return responseHandler.notFound(res, "Notification not found");
@@ -112,17 +85,7 @@ export class NotificationController {
 
   async markAsRead(req, res) {
     try {
-      const notification = await Notification.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user.id },
-        { 
-          $set: { 
-            read: true,
-            readAt: new Date(),
-            updatedAt: new Date()
-          } 
-        },
-        { new: true }
-      );
+      const notification = await notificationService.markAsRead(req.params.id, req.user.id);
 
       if (!notification) {
         return responseHandler.notFound(res, "Notification not found");
@@ -137,17 +100,7 @@ export class NotificationController {
 
   async markAllAsRead(req, res) {
     try {
-      await Notification.updateMany(
-        { userId: req.user.id, read: false },
-        { 
-          $set: { 
-            read: true,
-            readAt: new Date(),
-            updatedAt: new Date()
-          } 
-        }
-      );
-
+      await notificationService.markAllAsRead(req.user.id);
       return responseHandler.success(res, { message: "All notifications marked as read" });
     } catch (error) {
       logger.error("Failed to mark all notifications as read:", error);
